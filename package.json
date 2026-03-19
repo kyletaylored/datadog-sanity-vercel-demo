@@ -31,5 +31,11 @@
     "@sanity/prettier-config": "^2.0.2",
     "npm-run-all2": "^5.0.2",
     "prettier": "^3.7.3"
+  },
+  "dependencies": {
+    "@opentelemetry/api-logs": "^0.213.0",
+    "@opentelemetry/instrumentation": "^0.213.0",
+    "@opentelemetry/sdk-logs": "^0.213.0",
+    "@vercel/otel": "^2.1.1"
   }
 }
