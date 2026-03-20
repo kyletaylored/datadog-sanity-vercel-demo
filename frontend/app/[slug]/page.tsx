@@ -5,7 +5,6 @@ import PageBuilderPage from '@/app/components/PageBuilder'
 import {sanityFetch} from '@/sanity/lib/live'
 import {getPageQuery, pagesSlugs} from '@/sanity/lib/queries'
 import {GetPageQueryResult} from '@/sanity.types'
-import {PageOnboarding} from '@/app/components/Onboarding'
 
 type Props = {
   params: Promise<{slug: string}>
@@ -51,7 +50,9 @@ export default async function Page(props: Props) {
   if (!page?._id) {
     return (
       <div className="py-40">
-        <PageOnboarding />
+        <div className="max-w-2xl mx-auto py-12 text-center">
+        <p className="text-gray-500">This page does not exist yet.</p>
+      </div>
       </div>
     )
   }

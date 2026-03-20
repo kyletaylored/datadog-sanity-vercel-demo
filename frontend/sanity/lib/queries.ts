@@ -99,3 +99,34 @@ export const pagesSlugs = defineQuery(`
   *[_type == "page" && defined(slug.current)]
   {"slug": slug.current}
 `)
+
+export const resourcesPostsQuery = defineQuery(`
+  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {
+    _id,
+    "title": coalesce(title, "Untitled"),
+    "slug": slug.current,
+    excerpt,
+    "date": coalesce(date, _updatedAt),
+    category,
+    readTime,
+    "author": author->{firstName, lastName},
+  }
+`)
+
+export const labLatestPostsQuery = defineQuery(`
+  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) [0...5] {
+    _id,
+    "title": coalesce(title, "Untitled"),
+    "slug": slug.current,
+    category,
+  }
+`)
+
+export const labCampaignSearchQuery = defineQuery(`
+  *[_type == "post" && defined(slug.current) && (title match $q || pt::text(content) match $q)] | order(date desc) [0...20] {
+    _id,
+    "title": coalesce(title, "Untitled"),
+    "slug": slug.current,
+    category,
+  }
+`)

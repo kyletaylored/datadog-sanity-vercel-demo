@@ -1101,6 +1101,13 @@
           }
         },
         "optional": true
+      },
+      "announcementBanner": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
       }
     }
   },
@@ -1461,6 +1468,49 @@
         "value": {
           "type": "inline",
           "name": "person.reference"
+        },
+        "optional": true
+      },
+      "category": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "Product"
+            },
+            {
+              "type": "string",
+              "value": "Tutorial"
+            },
+            {
+              "type": "string",
+              "value": "Case Study"
+            },
+            {
+              "type": "string",
+              "value": "News"
+            },
+            {
+              "type": "string",
+              "value": "Company"
+            }
+          ]
+        },
+        "optional": true
+      },
+      "readTime": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "number"
+        },
+        "optional": true
+      },
+      "featuredOnHome": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "boolean"
         },
         "optional": true
       }

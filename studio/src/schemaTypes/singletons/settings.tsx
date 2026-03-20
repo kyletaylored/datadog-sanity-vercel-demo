@@ -156,6 +156,12 @@ export const settings = defineType({
         }),
       ],
     }),
+    defineField({
+      name: 'announcementBanner',
+      title: 'Announcement Banner',
+      type: 'string',
+      description: 'Optional banner shown sitewide — leave blank to hide',
+    }),
   ],
   preview: {
     prepare() {

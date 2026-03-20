@@ -165,6 +165,7 @@ export type Settings = {
     metadataBase?: string
     _type: 'image'
   }
+  announcementBanner?: string
 }
 
 export type SanityImageCrop = {
@@ -230,6 +231,9 @@ export type Post = {
   }
   date?: string
   author?: PersonReference
+  category?: 'Product' | 'Tutorial' | 'Case Study' | 'News' | 'Company'
+  readTime?: number
+  featuredOnHome?: boolean
 }
 
 export type Person = {

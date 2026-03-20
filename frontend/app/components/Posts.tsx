@@ -4,7 +4,6 @@ import {sanityFetch} from '@/sanity/lib/live'
 import {morePostsQuery, allPostsQuery} from '@/sanity/lib/queries'
 import {AllPostsQueryResult} from '@/sanity.types'
 import DateComponent from '@/app/components/Date'
-import OnBoarding from '@/app/components/Onboarding'
 import Avatar from '@/app/components/Avatar'
 import {dataAttr} from '@/sanity/lib/utils'
 
@@ -78,7 +77,11 @@ export const AllPosts = async () => {
   const {data} = await sanityFetch({query: allPostsQuery})
 
   if (!data || data.length === 0) {
-    return <OnBoarding />
+    return (
+      <div className="max-w-2xl mx-auto py-12 text-center">
+        <p className="text-gray-500">No posts yet. Check back soon.</p>
+      </div>
+    )
   }
 
   return (

@@ -14,7 +14,8 @@
     "dev": "sanity dev",
     "sanity:typegen": "sanity schema extract --enforce-required-fields --path ../sanity.schema.json && sanity typegen generate",
     "start": "sanity start",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "import": "sanity dataset import martech-pulse-sample-data/data.ndjson production --missing"
   },
   "dependencies": {
     "@sanity/assist": "^5.0.2",

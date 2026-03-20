@@ -83,6 +83,26 @@ export const post = defineType({
       type: 'reference',
       to: [{type: 'person'}],
     }),
+    defineField({
+      name: 'category',
+      title: 'Category',
+      type: 'string',
+      options: {
+        list: ['Product', 'Tutorial', 'Case Study', 'News', 'Company'],
+      },
+    }),
+    defineField({
+      name: 'readTime',
+      title: 'Read Time (minutes)',
+      type: 'number',
+      description: 'Estimated read time in minutes',
+    }),
+    defineField({
+      name: 'featuredOnHome',
+      title: 'Featured on Home',
+      type: 'boolean',
+      initialValue: false,
+    }),
   ],
   // List preview configuration. https://www.sanity.io/docs/previews-list-views
   preview: {

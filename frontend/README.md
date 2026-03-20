@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MarTech Pulse — Frontend
+
+> Next.js (App Router) + Sanity CMS + Vercel + `@vercel/otel` + Datadog RUM
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| CMS | Sanity (monorepo: `studio/`) |
+| Deployment | Vercel |
+| Tracing | `@vercel/otel` → Datadog APM |
+| RUM | `@datadog/browser-rum` |
+| Styling | Tailwind CSS v4 |
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone & install
+
+```bash
+git clone <repo-url>
+cd datadog-sanity-vercel-demo/frontend
+npm install
+```
+
+### 2. Configure environment variables
+
+Copy `.env.example` to `.env.local` and fill in the required values:
+
+```bash
+cp .env.example .env.local
+```
+
+Required variables:
+- `NEXT_PUBLIC_SANITY_PROJECT_ID` — your Sanity project ID
+- `NEXT_PUBLIC_SANITY_DATASET` — usually `production`
+- `SANITY_API_READ_TOKEN` — read token from Sanity project settings
+- `NEXT_PUBLIC_DD_APPLICATION_ID` — Datadog RUM application ID
+- `NEXT_PUBLIC_DD_CLIENT_TOKEN` — Datadog RUM client token
+
+Vercel automatically injects `VERCEL_PROJECT_NAME`, `VERCEL_ENV`, `VERCEL_REGION`, `VERCEL_GIT_COMMIT_SHA`, and their `NEXT_PUBLIC_` variants.
+
+### 3. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Run Sanity Studio
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+From the `studio/` directory:
 
-## Learn More
+```bash
+cd ../studio
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Studio runs at [http://localhost:3333](http://localhost:3333).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key Directories
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+frontend/
+├── app/
+│   ├── api/lab/          ← 13 Signal Lab API routes
+│   ├── components/lab/   ← Lab UI components
+│   ├── lab/              ← /lab page + useLab hook
+│   ├── solutions/        ← Solutions marketing page
+│   ├── resources/        ← Resources (Sanity-powered)
+│   ├── error.tsx         ← Global error boundary
+│   └── not-found.tsx     ← 404 page
+├── lib/
+│   ├── brand.ts          ← Brand constants (name, nav, etc.)
+│   ├── telemetry.ts      ← OTel span + structured log helpers
+│   └── rum.ts            ← Client-side RUM helpers
+└── sanity/lib/
+    └── queries.ts        ← All GROQ queries including lab queries
+```
 
-## Deploy on Vercel
+## Signal Lab
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Visit `/lab` to access the Signal Lab — an interactive panel for generating real traces, logs, and errors that flow into Datadog.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [`docs/LAB.md`](./docs/LAB.md) for full route documentation.
+
+## Observability Setup
+
+1. **Traces** — `@vercel/otel` instruments every request. All lab routes wrap logic in named spans via `withLabSpan`. Verify in Datadog APM with filter `resource_name:lab.*`.
+
+2. **Logs** — Every lab route emits structured JSON via `structuredLog`. Vercel log drain forwards these to Datadog Logs. Filter: `@event:lab_* @service:martech-pulse`.
+
+3. **RUM** — `@datadog/browser-rum` is initialized in `app/components/datadog-init.tsx`. The `useLab.ts` hook fires `addAction('lab_trigger')` after each API call with the `traceId` for APM correlation.

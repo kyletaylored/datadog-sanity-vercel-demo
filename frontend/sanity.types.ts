@@ -165,6 +165,7 @@ export type Settings = {
     metadataBase?: string
     _type: 'image'
   }
+  announcementBanner?: string
 }
 
 export type SanityImageCrop = {
@@ -230,6 +231,9 @@ export type Post = {
   }
   date?: string
   author?: PersonReference
+  category?: 'Product' | 'Tutorial' | 'Case Study' | 'News' | 'Company'
+  readTime?: number
+  featuredOnHome?: boolean
 }
 
 export type Person = {
@@ -571,6 +575,7 @@ export type SettingsQueryResult = {
     metadataBase?: string
     _type: 'image'
   }
+  announcementBanner?: string
 } | null
 
 // Source: sanity/lib/queries.ts
@@ -813,6 +818,43 @@ export type PagesSlugsResult = Array<{
   slug: string
 }>
 
+// Source: sanity/lib/queries.ts
+// Variable: resourcesPostsQuery
+// Query: *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {    _id,    "title": coalesce(title, "Untitled"),    "slug": slug.current,    excerpt,    "date": coalesce(date, _updatedAt),    category,    readTime,    "author": author->{firstName, lastName},  }
+export type ResourcesPostsQueryResult = Array<{
+  _id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  date: string
+  category: 'Case Study' | 'Company' | 'News' | 'Product' | 'Tutorial' | null
+  readTime: number | null
+  author: {
+    firstName: string
+    lastName: string
+  } | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: labLatestPostsQuery
+// Query: *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) [0...5] {    _id,    "title": coalesce(title, "Untitled"),    "slug": slug.current,    category,  }
+export type LabLatestPostsQueryResult = Array<{
+  _id: string
+  title: string
+  slug: string
+  category: 'Case Study' | 'Company' | 'News' | 'Product' | 'Tutorial' | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: labCampaignSearchQuery
+// Query: *[_type == "post" && defined(slug.current) && (title match $q || pt::text(content) match $q)] | order(date desc) [0...20] {    _id,    "title": coalesce(title, "Untitled"),    "slug": slug.current,    category,  }
+export type LabCampaignSearchQueryResult = Array<{
+  _id: string
+  title: string
+  slug: string
+  category: 'Case Study' | 'Company' | 'News' | 'Product' | 'Tutorial' | null
+}>
+
 // Query TypeMap
 import '@sanity/client'
 declare module '@sanity/client' {
@@ -825,5 +867,8 @@ declare module '@sanity/client' {
     '\n  *[_type == "post" && slug.current == $slug] [0] {\n    content[]{\n    ...,\n    markDefs[]{\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n    }\n  },\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': PostQueryResult
     '\n  *[_type == "post" && defined(slug.current)]\n  {"slug": slug.current}\n': PostPagesSlugsResult
     '\n  *[_type == "page" && defined(slug.current)]\n  {"slug": slug.current}\n': PagesSlugsResult
+    '\n  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    _id,\n    "title": coalesce(title, "Untitled"),\n    "slug": slug.current,\n    excerpt,\n    "date": coalesce(date, _updatedAt),\n    category,\n    readTime,\n    "author": author->{firstName, lastName},\n  }\n': ResourcesPostsQueryResult
+    '\n  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) [0...5] {\n    _id,\n    "title": coalesce(title, "Untitled"),\n    "slug": slug.current,\n    category,\n  }\n': LabLatestPostsQueryResult
+    '\n  *[_type == "post" && defined(slug.current) && (title match $q || pt::text(content) match $q)] | order(date desc) [0...20] {\n    _id,\n    "title": coalesce(title, "Untitled"),\n    "slug": slug.current,\n    category,\n  }\n': LabCampaignSearchQueryResult
   }
 }
