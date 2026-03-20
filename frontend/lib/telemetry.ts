@@ -1,5 +1,6 @@
 import {trace, SpanStatusCode, SpanKind} from '@opentelemetry/api'
 import {logs, SeverityNumber} from '@opentelemetry/api-logs'
+import {SERVICE_NAME, DEPLOY_ENV, DEPLOY_REGION} from '@/lib/config'
 
 const LAB_TRACER_NAME = 'martech-pulse.lab'
 const LAB_LOGGER_NAME = 'martech-pulse.lab'
@@ -31,9 +32,9 @@ export function structuredLog(
     timestamp: new Date().toISOString(),
     level,
     event,
-    service: process.env.VERCEL_PROJECT_NAME ?? 'martech-pulse',
-    env: process.env.VERCEL_ENV ?? 'development',
-    region: process.env.VERCEL_REGION ?? 'unknown',
+    service: SERVICE_NAME,
+    env: DEPLOY_ENV,
+    region: DEPLOY_REGION,
     traceId,
     spanId,
     ...data,

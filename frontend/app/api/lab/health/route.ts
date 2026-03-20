@@ -1,4 +1,5 @@
 import {withLabSpan, structuredLog, getTraceContext} from '@/lib/telemetry'
+import {SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION} from '@/lib/config'
 import {NextResponse} from 'next/server'
 
 export async function GET() {
@@ -7,10 +8,10 @@ export async function GET() {
     const payload = {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      region: process.env.VERCEL_REGION ?? 'unknown',
-      env: process.env.VERCEL_ENV ?? 'development',
-      service: process.env.VERCEL_PROJECT_NAME ?? 'martech-pulse',
-      version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local',
+      region: DEPLOY_REGION,
+      env: DEPLOY_ENV,
+      service: SERVICE_NAME,
+      version: SERVICE_VERSION,
       traceId,
     }
     structuredLog('info', 'health_check', {spanId})

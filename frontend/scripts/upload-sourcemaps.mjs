@@ -16,7 +16,9 @@ import {existsSync} from 'fs'
 const {
   VERCEL_ENV,
   VERCEL_GIT_COMMIT_SHA,
+  NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
   VERCEL_PROJECT_NAME,
+  NEXT_PUBLIC_VERCEL_PROJECT_NAME,
   NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER,
   NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG,
   DATADOG_API_KEY,
@@ -39,8 +41,9 @@ if (!existsSync('.next/static')) {
   process.exit(1)
 }
 
-const service = VERCEL_PROJECT_NAME ?? 'martech-pulse'
-const version = VERCEL_GIT_COMMIT_SHA ? VERCEL_GIT_COMMIT_SHA.slice(0, 7) : 'local'
+const service = NEXT_PUBLIC_VERCEL_PROJECT_NAME ?? VERCEL_PROJECT_NAME ?? 'martech-pulse'
+const sha = NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? VERCEL_GIT_COMMIT_SHA
+const version = sha ? sha.slice(0, 7) : 'local'
 const site = NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com'
 
 // Use repository URL from Vercel git env vars for Datadog's git integration.
