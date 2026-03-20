@@ -22,6 +22,21 @@ export function getTraceContext(): {traceId: string; spanId: string} {
   return {traceId: ctx.traceId, spanId: ctx.spanId}
 }
 
+/**
+ * Convert a 16-char hex string to an unsigned 64-bit decimal string.
+ * Datadog APM stores trace/span IDs as 64-bit decimals, so log drain JSON
+ * must use this format for log-trace correlation to work.
+ * OTel trace IDs are 128-bit; Datadog uses the lower 64 bits (last 16 chars).
+ */
+function hexToDecimal(hex: string): string {
+  if (!hex) return ''
+  try {
+    return BigInt(`0x${hex}`).toString(10)
+  } catch {
+    return ''
+  }
+}
+
 export function structuredLog(
   level: 'info' | 'warn' | 'error',
   event: string,
@@ -37,6 +52,9 @@ export function structuredLog(
     region: DEPLOY_REGION,
     traceId,
     spanId,
+    // Datadog log-trace correlation: lower 64 bits of OTel trace ID as decimal
+    'dd.trace_id': hexToDecimal(traceId.slice(-16)),
+    'dd.span_id': hexToDecimal(spanId),
     ...data,
   }
   // Emit OTel log record — exported via OTLP to Datadog APM (correlated with active trace).
@@ -51,6 +69,25 @@ export function structuredLog(
   if (level === 'error') console.error(JSON.stringify(entry))
   else if (level === 'warn') console.warn(JSON.stringify(entry))
   else console.log(JSON.stringify(entry))
+}
+
+/**
+ * Set Datadog Error Tracking attributes on a span.
+ * Must be called on the service entry span (SpanKind.SERVER) for Datadog to
+ * surface the error in Error Tracking. Supplements span.recordException()
+ * which only sets OTel's exception.* attributes.
+ */
+export function setSpanError(
+  span: ReturnType<ReturnType<typeof getLabTracer>['startSpan']>,
+  err: Error | string,
+): void {
+  const error = typeof err === 'string' ? new Error(err) : err
+  span.recordException(error)
+  span.setStatus({code: SpanStatusCode.ERROR, message: error.message})
+  // Datadog Error Tracking requires these specific attribute names
+  span.setAttribute('error.type', error.name ?? 'Error')
+  span.setAttribute('error.message', error.message ?? '')
+  span.setAttribute('error.stack', error.stack ?? '')
 }
 
 export async function withLabSpan<T>(
@@ -68,8 +105,7 @@ export async function withLabSpan<T>(
         span.setStatus({code: SpanStatusCode.OK})
         return result
       } catch (err) {
-        span.recordException(err as Error)
-        span.setStatus({code: SpanStatusCode.ERROR, message: (err as Error).message})
+        setSpanError(span, err as Error)
         throw err
       } finally {
         span.end()

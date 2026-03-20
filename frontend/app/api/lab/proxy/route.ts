@@ -1,4 +1,4 @@
-import {withLabSpan, structuredLog, getTraceContext} from '@/lib/telemetry'
+import {withLabSpan, structuredLog, getTraceContext, setSpanError} from '@/lib/telemetry'
 import {NextResponse} from 'next/server'
 import type {NextRequest} from 'next/server'
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     },
     async (span) => {
       if (forceError) {
-        span.setStatus({code: 2, message: 'Forced error'})
+        setSpanError(span, 'Forced error triggered by proxy route')
         structuredLog('error', 'proxy_request', {targetHost, forcedError: true})
         return NextResponse.json({error: true, message: 'Forced error triggered'}, {status: 500})
       }
