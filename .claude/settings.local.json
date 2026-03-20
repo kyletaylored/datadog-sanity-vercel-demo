@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "WebFetch(domain:www.sanity.io)"
+      "WebFetch(domain:www.sanity.io)",
+      "Bash(npm run:*)"
     ]
   }
 }

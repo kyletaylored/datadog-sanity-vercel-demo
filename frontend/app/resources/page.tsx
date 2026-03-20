@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 export default async function ResourcesPage() {
   const {data} = await sanityFetch({query: resourcesPostsQuery})
 
-  return <ResourcesClient posts={(data as any[]) ?? []} />
+  return <ResourcesClient posts={data ?? []} />
 }

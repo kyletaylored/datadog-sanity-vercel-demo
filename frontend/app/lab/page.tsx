@@ -1,7 +1,7 @@
 'use client'
 
 import {useState, useEffect} from 'react'
-import {Activity, Zap, Search, AlertTriangle, FileText, Globe, Terminal} from 'lucide-react'
+import {Activity, Search, AlertTriangle, FileText, Globe, Terminal} from 'lucide-react'
 import LabSection from '@/app/components/lab/LabSection'
 import LabCard from '@/app/components/lab/LabCard'
 import ResultDisplay from '@/app/components/lab/ResultDisplay'
@@ -9,7 +9,7 @@ import {labFetch} from '@/app/lab/useLab'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
-function useLabAction<T>(route: string, options?: RequestInit) {
+function useLabAction<T = Record<string, unknown>>(route: string, options?: RequestInit) {
   const [status, setStatus] = useState<Status>('idle')
   const [result, setResult] = useState<T | null>(null)
   const [traceId, setTraceId] = useState('')
@@ -43,37 +43,37 @@ export default function LabPage() {
   const [slowDelay, setSlowDelay] = useState('2000')
   const slowQuery = useLabAction(`/api/lab/slow-query?delay=${slowDelay}`)
 
-  const [chainResult, setChainResult] = useState<unknown>(null)
+  const [chainResult, setChainResult] = useState<Record<string, unknown> | null>(null)
   const [chainStatus, setChainStatus] = useState<Status>('idle')
   const [chainTraceId, setChainTraceId] = useState('')
 
   const [leadForm, setLeadForm] = useState({name: '', email: '', company: '', interestedIn: ''})
   const [leadStatus, setLeadStatus] = useState<Status>('idle')
-  const [leadResult, setLeadResult] = useState<unknown>(null)
+  const [leadResult, setLeadResult] = useState<Record<string, unknown> | null>(null)
   const [leadTraceId, setLeadTraceId] = useState('')
 
   const [searchQ, setSearchQ] = useState('')
   const [searchStatus, setSearchStatus] = useState<Status>('idle')
-  const [searchResult, setSearchResult] = useState<unknown>(null)
+  const [searchResult, setSearchResult] = useState<Record<string, unknown> | null>(null)
   const [searchTraceId, setSearchTraceId] = useState('')
 
   const [proxyUrl, setProxyUrl] = useState('https://httpbin.org/json')
   const [proxyInjectLatency, setProxyInjectLatency] = useState(false)
   const [proxyForceError, setProxyForceError] = useState(false)
   const [proxyStatus, setProxyStatus] = useState<Status>('idle')
-  const [proxyResult, setProxyResult] = useState<unknown>(null)
+  const [proxyResult, setProxyResult] = useState<Record<string, unknown> | null>(null)
   const [proxyTraceId, setProxyTraceId] = useState('')
 
   const [burstCount, setBurstCount] = useState('5')
   const [burstLevel, setBurstLevel] = useState<'info' | 'warn' | 'error'>('info')
   const [burstStatus, setBurstStatus] = useState<Status>('idle')
-  const [burstResult, setBurstResult] = useState<unknown>(null)
+  const [burstResult, setBurstResult] = useState<Record<string, unknown> | null>(null)
   const [burstTraceId, setBurstTraceId] = useState('')
 
   const [attrKey, setAttrKey] = useState('lab.custom.demo')
   const [attrValue, setAttrValue] = useState('hello')
   const [attrStatus, setAttrStatus] = useState<Status>('idle')
-  const [attrResult, setAttrResult] = useState<unknown>(null)
+  const [attrResult, setAttrResult] = useState<Record<string, unknown> | null>(null)
   const [attrTraceId, setAttrTraceId] = useState('')
 
   const [envData, setEnvData] = useState<Record<string, string> | null>(null)
@@ -86,7 +86,7 @@ export default function LabPage() {
 
   const handleLead = async () => {
     setLeadStatus('loading')
-    const r = await labFetch('/api/lab/lead-capture', {
+    const r = await labFetch<Record<string, unknown>>('/api/lab/lead-capture', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(leadForm),
@@ -98,7 +98,7 @@ export default function LabPage() {
 
   const handleSearch = async () => {
     setSearchStatus('loading')
-    const r = await labFetch(`/api/lab/campaign-search?q=${encodeURIComponent(searchQ)}`)
+    const r = await labFetch<Record<string, unknown>>(`/api/lab/campaign-search?q=${encodeURIComponent(searchQ)}`)
     setSearchTraceId(r.traceId)
     setSearchResult(r.data)
     setSearchStatus(r.error ? 'error' : 'success')
@@ -106,7 +106,7 @@ export default function LabPage() {
 
   const handleProxy = async () => {
     setProxyStatus('loading')
-    const r = await labFetch('/api/lab/proxy', {
+    const r = await labFetch<Record<string, unknown>>('/api/lab/proxy', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({url: proxyUrl, injectLatency: proxyInjectLatency, forceError: proxyForceError}),
@@ -118,7 +118,7 @@ export default function LabPage() {
 
   const handleBurst = async () => {
     setBurstStatus('loading')
-    const r = await labFetch('/api/lab/log-burst', {
+    const r = await labFetch<Record<string, unknown>>('/api/lab/log-burst', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({count: parseInt(burstCount), level: burstLevel}),
@@ -130,7 +130,7 @@ export default function LabPage() {
 
   const handleAttr = async () => {
     setAttrStatus('loading')
-    const r = await labFetch('/api/lab/custom-attribute', {
+    const r = await labFetch<Record<string, unknown>>('/api/lab/custom-attribute', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({key: attrKey, value: attrValue}),
@@ -142,7 +142,7 @@ export default function LabPage() {
 
   const handleChain = async () => {
     setChainStatus('loading')
-    const r = await labFetch('/api/lab/chain')
+    const r = await labFetch<Record<string, unknown>>('/api/lab/chain')
     setChainTraceId(r.traceId)
     setChainResult(r.data)
     setChainStatus(r.error ? 'error' : 'success')

@@ -2,7 +2,7 @@ import {NextResponse} from 'next/server'
 import type {NextRequest} from 'next/server'
 import {trace} from '@opentelemetry/api'
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   const response = NextResponse.next()
   const span = trace.getActiveSpan()
   if (span) {

@@ -18,7 +18,6 @@ function isPrivateHost(hostname: string): boolean {
   return PRIVATE_IP_PATTERNS.some((p) => p.test(hostname))
 }
 
-const MAX_BODY_BYTES = 100 * 1024
 
 export async function POST(request: NextRequest) {
   const body = await request.json()

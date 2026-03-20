@@ -2,7 +2,7 @@ import {withLabSpan, structuredLog, getTraceContext} from '@/lib/telemetry'
 import {NextResponse} from 'next/server'
 
 export async function GET() {
-  return withLabSpan('lab.health_check', {'lab.route': '/api/lab/health'}, async (span) => {
+  return withLabSpan('lab.health_check', {'lab.route': '/api/lab/health'}, async (_span) => {
     const {traceId, spanId} = getTraceContext()
     const payload = {
       status: 'ok',

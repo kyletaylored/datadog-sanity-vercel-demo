@@ -1,4 +1,5 @@
 import type {Metadata} from 'next'
+import Link from 'next/link'
 import {Shield, Zap, Database, BarChart3, Globe, Lock} from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -163,7 +164,7 @@ export default function PlatformPage() {
                     </li>
                   ))}
                 </ul>
-                <a
+                <Link
                   href="/lab"
                   className={`text-center rounded-full py-3 px-6 text-sm font-semibold transition-colors ${
                     highlight
@@ -172,7 +173,7 @@ export default function PlatformPage() {
                   }`}
                 >
                   {cta}
-                </a>
+                </Link>
               </div>
             ))}
           </div>

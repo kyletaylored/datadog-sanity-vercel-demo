@@ -17,8 +17,8 @@ const stats = [
 
 export default async function CaseStudiesPage() {
   const {data} = await sanityFetch({query: resourcesPostsQuery})
-  const posts = (data as any[]) ?? []
-  const caseStudies = posts.filter((p: any) => p.category === 'Case Study')
+  const posts = data ?? []
+  const caseStudies = posts.filter((p) => p.category === 'Case Study')
 
   return (
     <div className="min-h-screen">
