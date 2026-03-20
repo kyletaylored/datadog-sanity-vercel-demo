@@ -1,6 +1,14 @@
 import {trace, SpanStatusCode, SpanKind} from '@opentelemetry/api'
+import {logs, SeverityNumber} from '@opentelemetry/api-logs'
 
 const LAB_TRACER_NAME = 'martech-pulse.lab'
+const LAB_LOGGER_NAME = 'martech-pulse.lab'
+
+const SEVERITY: Record<'info' | 'warn' | 'error', SeverityNumber> = {
+  info: SeverityNumber.INFO,
+  warn: SeverityNumber.WARN,
+  error: SeverityNumber.ERROR,
+}
 
 export function getLabTracer() {
   return trace.getTracer(LAB_TRACER_NAME)
@@ -30,6 +38,15 @@ export function structuredLog(
     spanId,
     ...data,
   }
+  // Emit OTel log record — exported via OTLP to Datadog APM (correlated with active trace).
+  logs.getLogger(LAB_LOGGER_NAME).emit({
+    severityNumber: SEVERITY[level],
+    severityText: level.toUpperCase(),
+    body: event,
+    attributes: entry,
+  })
+
+  // Also emit to console — Vercel log drain forwards these to Datadog Logs.
   if (level === 'error') console.error(JSON.stringify(entry))
   else if (level === 'warn') console.warn(JSON.stringify(entry))
   else console.log(JSON.stringify(entry))
