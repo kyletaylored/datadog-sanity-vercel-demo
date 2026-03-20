@@ -28,16 +28,16 @@ const nextConfig: NextConfig = {
     ...(commitSha ? {DD_GIT_COMMIT_SHA: commitSha} : {}),
   },
 
+  // Turbopack is the default in Next.js 16. The `env` option above handles
+  // DD_GIT_* injection for Turbopack builds. An explicit turbopack config is
+  // required alongside any webpack config to avoid a hard build error.
+  turbopack: {},
+
+  // webpack config only runs when building with --webpack flag explicitly.
+  // Adds hidden sourcemaps and BannerPlugin for DD_GIT_* as belt-and-suspenders.
   webpack: (config, {isServer, dev, webpack}) => {
     if (isServer && !dev) {
-      // Generate sourcemaps for server bundles in production.
-      // 'hidden-source-map' emits .map files without appending the //# sourceMappingURL
-      // comment, so they are not served publicly but can be uploaded to Datadog.
       config.devtool = 'hidden-source-map'
-
-      // BannerPlugin: inject DD_GIT_* at the top of each server entry bundle.
-      // Combined with the env option above, this ensures the metadata is present
-      // whether the binary is read via process.env at runtime or via dd-trace.
       if (gitRepoUrl && commitSha) {
         config.plugins!.push(
           new webpack.BannerPlugin({
