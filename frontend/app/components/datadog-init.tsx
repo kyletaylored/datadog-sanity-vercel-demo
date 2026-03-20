@@ -1,7 +1,6 @@
 "use client";
 
 import { datadogRum } from "@datadog/browser-rum";
-import { url } from "inspector";
 
 datadogRum.init({
     applicationId: 'd75cdf34-3db3-4467-bd86-1330834806c3',
