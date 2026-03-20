@@ -13,11 +13,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@datadog/browser-rum": "^6.31.0",
+    "@opentelemetry/api": "^1.9.0",
     "@sanity/client": "^7.13.2",
     "@sanity/image-url": "^1.2.0",
     "@sanity/uuid": "^3.0.2",
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/typography": "^0.5.19",
+    "@vercel/otel": "^2.1.1",
     "@vercel/speed-insights": "^1.2.0",
     "autoprefixer": "^10.4.22",
     "date-fns": "^4.1.0",
