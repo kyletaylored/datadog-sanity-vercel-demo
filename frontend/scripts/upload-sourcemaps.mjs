@@ -10,8 +10,8 @@
  * Skipped silently in non-production environments and when DATADOG_API_KEY is absent.
  */
 
-import {execSync} from 'child_process'
-import {existsSync} from 'fs'
+import { execSync } from 'child_process'
+import { existsSync } from 'fs'
 
 const {
   VERCEL_ENV,
@@ -71,14 +71,14 @@ try {
   execSync(
     [
       'npx @datadog/datadog-ci sourcemaps upload .next/static',
-      `--service=${service}`,
+      `--service=${service}-web`,
       `--release-version=${version}`,
       '--minified-path-prefix=/_next/static',
       gitFlag,
     ].join(' '),
-    {stdio: 'inherit', env: ddEnv},
+    { stdio: 'inherit', env: ddEnv },
   )
-  execSync("find .next/static -name '*.map' -delete", {stdio: 'inherit'})
+  execSync("find .next/static -name '*.map' -delete", { stdio: 'inherit' })
   console.log('[sourcemaps] Browser upload complete.')
 } catch (err) {
   console.error('[sourcemaps] Browser upload failed (non-fatal):', err.message)
@@ -92,7 +92,7 @@ try {
 if (existsSync('.next/server')) {
   const hasServerMaps = (() => {
     try {
-      return execSync("find .next/server -name '*.map' | head -1", {encoding: 'utf8'}).trim() !== ''
+      return execSync("find .next/server -name '*.map' | head -1", { encoding: 'utf8' }).trim() !== ''
     } catch {
       return false
     }
@@ -109,9 +109,9 @@ if (existsSync('.next/server')) {
           '--minified-path-prefix=/var/task/frontend/.next/server',
           gitFlag,
         ].join(' '),
-        {stdio: 'inherit', env: ddEnv},
+        { stdio: 'inherit', env: ddEnv },
       )
-      execSync("find .next/server -name '*.map' -delete", {stdio: 'inherit'})
+      execSync("find .next/server -name '*.map' -delete", { stdio: 'inherit' })
       console.log('[sourcemaps] Server upload complete.')
     } catch (err) {
       console.error('[sourcemaps] Server upload failed (non-fatal):', err.message)
