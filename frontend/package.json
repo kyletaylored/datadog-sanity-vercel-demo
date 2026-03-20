@@ -4,6 +4,7 @@
   "scripts": {
     "prebuild": "sanity typegen generate",
     "build": "next build",
+    "postbuild": "node scripts/upload-sourcemaps.mjs",
     "predev": "npm run sanity:typegen",
     "dev": "next dev",
     "lint": "eslint .",
