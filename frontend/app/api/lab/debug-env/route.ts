@@ -20,6 +20,13 @@ function isSensitive(key: string): boolean {
   return SECRET_PATTERNS.some((p) => p.test(key))
 }
 
+function redactValue(value: string | undefined): string | undefined {
+  if (!value) return value
+  // Redact values that appear to contain embedded secrets (e.g. JSON with api-key fields)
+  if (SECRET_PATTERNS.some((p) => p.test(value))) return '[redacted — contains sensitive data]'
+  return value
+}
+
 export async function POST(request: NextRequest) {
   const secret = process.env.DEBUG_SECRET
   if (!secret) {
@@ -40,8 +47,9 @@ export async function POST(request: NextRequest) {
   const filtered = Object.fromEntries(
     Object.entries(process.env)
       .filter(([key]) => !isSensitive(key))
-      .sort(([a], [b]) => a.localeCompare(b)),
+      .map(([key, value]) => [key, redactValue(value)])
+      .sort(([a], [b]) => (a as string).localeCompare(b as string)),
   )
 
-  return NextResponse.json({env: filtered, redacted: 'Keys matching token/secret/password/auth/key/cert patterns are omitted'})
+  return NextResponse.json({env: filtered, redacted: 'Keys matching sensitive patterns are omitted; values containing sensitive data are redacted'})
 }
