@@ -1,108 +1,141 @@
-# Clean Next.js + Sanity app
+# MarTech Pulse
 
-This template includes a [Next.js](https://nextjs.org/) app with a [Sanity Studio](https://www.sanity.io/) – an open-source React application that connects to your Sanity project’s hosted dataset. The Studio is configured locally and can then be deployed for content collaboration.
+A full-stack marketing platform demo built on **Next.js 16 App Router**, **Sanity CMS**, and **Vercel** — with end-to-end observability wired to **Datadog APM**, **RUM**, and **Logs** via the Vercel log drain.
 
-![Screenshot of Sanity Studio using Presentation Tool to do Visual Editing](/sanity-next-preview.png)
+## What's in the box
 
-## Features
+- **`/frontend`** — Next.js 16 App Router with Tailwind CSS
+- **`/studio`** — Sanity Studio (local dev + `npx sanity deploy`)
+- **Signal Lab** (`/lab`) — interactive control panel to trigger real API calls, generate traces, emit structured logs, and produce errors — all visible in Datadog
 
-- **Next.js 16 for Performance:** Leverage the power of Next.js 16 App Router for blazing-fast performance and SEO-friendly static sites.
-- **Real-time Visual Editing:** Edit content live with Sanity's [Presentation Tool](https://www.sanity.io/docs/presentation) and see updates in real time.
-- **Live Content:** The [Live Content API](https://www.sanity.io/live) allows you to deliver live, dynamic experiences to your users without the complexity and scalability challenges that typically come with building real-time functionality.
-- **Customizable Pages with Drag-and-Drop:** Create and manage pages using a page builder with dynamic components and [Drag-and-Drop Visual Editing](https://www.sanity.io/visual-editing-for-structured-content).
-- **Powerful Content Management:** Collaborate with team members in real-time, with fine-grained revision history.
-- **AI-powered Media Support:** Auto-generate alt text with [Sanity AI Assist](https://www.sanity.io/ai-assist).
-- **On-demand Publishing:** No waiting for rebuilds—new content is live instantly with Incremental Static Revalidation.
-- **Easy Media Management:** [Integrated Unsplash support](https://www.sanity.io/plugins/sanity-plugin-asset-source-unsplash) for seamless media handling.
+## Observability stack
 
-## Demo
+| Signal | How it gets to Datadog |
+|--------|----------------------|
+| **APM traces** | `@vercel/otel` → Vercel OTLP export → Datadog APM |
+| **RUM** | `@datadog/browser-rum` initialized in `datadog-init.tsx` |
+| **Logs** | Structured JSON on stdout/stderr → Vercel log drain → Datadog Logs |
+| **Sourcemaps** | `@datadog/datadog-ci` postbuild script → Datadog |
 
-https://template-nextjs-clean.sanity.dev
+Trace IDs are injected into every API response as `x-trace-id` / `x-span-id` headers, and RUM actions fire on every lab trigger so frontend sessions correlate with backend traces.
 
-## Getting Started
+## Getting started
 
-### Installing the template
+### Prerequisites
 
-> **Already deployed with Vercel?** If you've already deployed using the **Sanity + Vercel Integration** or **one-click Vercel button**, please visit our [Vercel deployment instructions](vercel-installation-instructions.md) to set up your local environment and deploy Sanity Studio.
+- Node.js 20+
+- A [Sanity](https://sanity.io) project (free tier works)
+- A [Datadog](https://datadoghq.com) account with RUM and APM enabled
 
-#### 1. Initialize template with Sanity CLI
+### 1. Install dependencies
 
-Run the command in your Terminal to initialize this template on your local computer.
-
-```shell
-npm create sanity@latest -- --template sanity-io/sanity-template-nextjs-clean
+```bash
+npm install
 ```
 
-See the documentation if you are [having issues with the CLI](https://www.sanity.io/help/cli-errors).
+### 2. Configure environment variables
 
-#### 2. Run Studio and Next.js app locally
+Copy the example file and fill in your values:
 
-Navigate to the template directory using `cd <your app name>`, and start the development servers by running the following command
+```bash
+cp frontend/.env.example frontend/.env.local
+```
 
-```shell
+Required variables:
+
+```bash
+# Sanity
+NEXT_PUBLIC_SANITY_PROJECT_ID=
+NEXT_PUBLIC_SANITY_DATASET=production
+SANITY_API_READ_TOKEN=
+
+# Datadog RUM
+NEXT_PUBLIC_DD_APPLICATION_ID=
+NEXT_PUBLIC_DD_CLIENT_TOKEN=
+NEXT_PUBLIC_DD_SITE=datadoghq.com    # or datadoghq.eu, etc.
+
+# Datadog sourcemap upload (production builds only)
+DATADOG_API_KEY=
+```
+
+> The `VERCEL_*` environment variables (`VERCEL_ENV`, `VERCEL_PROJECT_NAME`, `VERCEL_REGION`, `VERCEL_GIT_COMMIT_SHA`) are injected automatically by Vercel at build and runtime — no manual configuration needed.
+
+### 3. Run locally
+
+```bash
 npm run dev
 ```
 
-#### 3. Open the app and sign in to the Studio
+- Next.js app: [http://localhost:3000](http://localhost:3000)
+- Sanity Studio: [http://localhost:3333](http://localhost:3333)
 
-Open the Next.js app running locally in your browser on [http://localhost:3000](http://localhost:3000).
+### 4. Import sample content (optional)
 
-Open the Studio running locally in your browser on [http://localhost:3333](http://localhost:3333). You should now see a screen prompting you to log in to the Studio. Use the same service (Google, GitHub, or email) that you used when you logged in to the CLI.
-
-### Adding content with Sanity
-
-#### 1. Publish your first document
-
-The template comes pre-defined with a schema containing `Page`, `Post`, `Person`, and `Settings` document types.
-
-From the Studio, click "+ Create" and select the `Post` document type. Go ahead and create and publish the document.
-
-Your content should now appear in your Next.js app ([http://localhost:3000](http://localhost:3000)) as well as in the Studio on the "Presentation" Tab
-
-#### 2. Import Sample Data (optional)
-
-You may want to start with some sample content and we've got you covered. Run this command from the root of your project to import the provided dataset (sample-data.tar.gz) into your Sanity project. This step is optional but can be helpful for getting started quickly.
-
-```shell
-npm run import-sample-data
+```bash
+cd studio
+sanity dataset import ../studio/martech-pulse-sample-data/data.ndjson production --replace
 ```
 
-#### 3. Extending the Sanity schema
+See [`studio/martech-pulse-sample-data/IMPORT.md`](studio/martech-pulse-sample-data/IMPORT.md) for full instructions.
 
-The schema for the `Post` document type is defined in the `studio/src/schemaTypes/post.ts` file. You can [add more document types](https://www.sanity.io/docs/studio/schema-types) to the schema to suit your needs.
+## Deploying to Vercel
 
-### Deploying your application and inviting editors
+1. Push this repo to GitHub
+2. Create a new Vercel project and connect it to the repo
+3. Set **Root Directory** to `frontend`
+4. Add all environment variables from step 2 above in Vercel Project Settings → Environment Variables
+5. Add a [Vercel log drain](https://vercel.com/docs/observability/log-drains) pointing at your Datadog HTTP endpoint to forward structured logs
 
-#### 1. Deploy Sanity Studio
+The `postbuild` script runs automatically on Vercel production deploys and uploads sourcemaps to Datadog using `@datadog/datadog-ci`. It reads `VERCEL_GIT_REPO_OWNER` and `VERCEL_GIT_REPO_SLUG` to pass `--repository-url` for Datadog's git integration.
 
-Your Next.js frontend (`/frontend`) and Sanity Studio (`/studio`) are still only running on your local computer. It's time to deploy and get it into the hands of other content editors.
+## Signal Lab routes
 
-Back in your Studio directory (`/studio`), run the following command to deploy your Sanity Studio.
+All routes under `/api/lab/` create named OTEL spans and emit structured JSON logs. See [`frontend/docs/LAB.md`](frontend/docs/LAB.md) for the full reference.
 
-```shell
-npx sanity deploy
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/lab/health` | GET | Liveness check |
+| `/api/lab/env-info` | GET | Safe Vercel env snapshot |
+| `/api/lab/cms-fetch` | GET | Fetch latest posts from Sanity |
+| `/api/lab/slow-query` | GET | Artificial latency (`?delay=ms`) |
+| `/api/lab/handled-error` | GET | Throws + catches, returns 500 |
+| `/api/lab/unhandled-error` | GET | Throws without catching |
+| `/api/lab/chain` | GET | 3-hop chained fetch with trace propagation |
+| `/api/lab/lead-capture` | POST | Form validation + structured log |
+| `/api/lab/campaign-search` | GET | GROQ full-text search (`?q=`) |
+| `/api/lab/proxy` | POST | Server-side outbound fetch with SSRF protection |
+| `/api/lab/log-burst` | POST | Emit N structured log lines |
+| `/api/lab/custom-attribute` | POST | Set a span attribute |
+| `/api/lab/flags` | GET | Fetch feature flags from Sanity |
+
+## Project structure
+
 ```
-
-#### 2. Deploy Next.js app to Vercel
-
-You have the freedom to deploy your Next.js app to your hosting provider of choice. With Vercel and GitHub being a popular choice, we'll cover the basics of that approach.
-
-1. Create a GitHub repository from this project. [Learn more](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github).
-2. Create a new Vercel project and connect it to your Github repository.
-3. Set the `Root Directory` to your Next.js app.
-4. Configure your Environment Variables.
-
-#### 3. Invite a collaborator
-
-Now that you’ve deployed your Next.js application and Sanity Studio, you can optionally invite a collaborator to your Studio. Open up [Manage](https://www.sanity.io/manage), select your project and click "Invite project members"
-
-They will be able to access the deployed Studio, where you can collaborate together on creating content.
+.
+├── frontend/               # Next.js 16 App Router
+│   ├── app/
+│   │   ├── api/lab/        # 13 Signal Lab API routes
+│   │   ├── components/     # Shared UI + lab components
+│   │   ├── lab/            # Signal Lab page
+│   │   ├── platform/       # Static marketing page
+│   │   ├── solutions/      # Static marketing page
+│   │   ├── resources/      # Sanity-powered post listing
+│   │   └── case-studies/   # Filtered post listing
+│   ├── lib/
+│   │   ├── brand.ts        # BRAND constants
+│   │   ├── telemetry.ts    # OTel span + log helpers
+│   │   └── rum.ts          # Client-side RUM helpers
+│   ├── sanity/lib/         # Sanity client, queries, types
+│   └── scripts/
+│       └── upload-sourcemaps.mjs   # Postbuild sourcemap upload
+└── studio/                 # Sanity Studio
+    └── src/schemaTypes/    # Post, Page, Person, Settings schemas
+```
 
 ## Resources
 
+- [Datadog APM docs](https://docs.datadoghq.com/tracing/)
+- [Datadog RUM docs](https://docs.datadoghq.com/real_user_monitoring/)
+- [Vercel log drains](https://vercel.com/docs/observability/log-drains)
 - [Sanity documentation](https://www.sanity.io/docs)
 - [Next.js documentation](https://nextjs.org/docs)
-- [Join the Sanity Community](https://slack.sanity.io)
-- [Learn Sanity](https://www.sanity.io/learn)
-
-[vercel-deploy]: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsanity-io%2Fsanity-template-nextjs-clean&project-name=nextjs-clean-website-sanity-template&repository-name=nextjs-clean-website-sanity-template&demo-title=Clean%20Next.js%20%2B%20Sanity%20app&demo-description=A%20clean%20Next.js%20plus%20Sanity%20starter%20with%20real-time%20visual%20editing%2C%20drag-and-drop%20page%20builder%2C%20AI%20media%20support%2C%20and%20live%20content%20updates.&demo-url=https%3A%2F%2Ftemplate-nextjs-clean.sanity.build%2F&demo-image=https%3A%2F%2Fraw.githubusercontent.com%2Fsanity-io%2Fsanity-template-nextjs-clean%2Frefs%2Fheads%2Fmain%2Fsanity-next-preview.png&products=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22sanity%22%2C%22productSlug%22%3A%22project%22%2C%22protocol%22%3A%22other%22%7D%5D&root-directory=frontend

@@ -17,6 +17,8 @@ const {
   VERCEL_ENV,
   VERCEL_GIT_COMMIT_SHA,
   VERCEL_PROJECT_NAME,
+  NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER,
+  NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG,
   DATADOG_API_KEY,
   NEXT_PUBLIC_DD_SITE,
 } = process.env
@@ -41,7 +43,14 @@ const service = VERCEL_PROJECT_NAME ?? 'martech-pulse'
 const version = VERCEL_GIT_COMMIT_SHA ? VERCEL_GIT_COMMIT_SHA.slice(0, 7) : 'local'
 const site = NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com'
 
-console.log(`[sourcemaps] Uploading — service=${service} version=${version} site=${site}`)
+// Use repository URL from Vercel git env vars for Datadog's git integration.
+// If not available (e.g. non-GitHub deploys), pass --disable-git to suppress the error.
+const repoUrl =
+  NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER && NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG
+    ? `https://github.com/${NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER}/${NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG}`
+    : null
+
+console.log(`[sourcemaps] Uploading — service=${service} version=${version} site=${site} repo=${repoUrl ?? '(disabled)'}`)
 
 try {
   execSync(
@@ -50,6 +59,7 @@ try {
       `--service=${service}`,
       `--release-version=${version}`,
       '--minified-path-prefix=/_next/static',
+      repoUrl ? `--repository-url=${repoUrl}` : '--disable-git',
     ].join(' '),
     {
       stdio: 'inherit',
