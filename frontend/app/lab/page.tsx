@@ -84,6 +84,22 @@ export default function LabPage() {
     })
   }, [])
 
+  const randomizeLead = () => {
+    const firstNames = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Drew', 'Blake']
+    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis']
+    const companies = ['Acme Corp', 'Initech', 'Umbrella Inc', 'Globex', 'Hooli', 'Pied Piper', 'Dunder Mifflin']
+    const interests = ['APM', 'RUM', 'Log Management', 'Infrastructure', 'Security', 'Synthetics', 'CI Visibility']
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)]
+    const first = pick(firstNames)
+    const last = pick(lastNames)
+    setLeadForm({
+      name: `${first} ${last}`,
+      email: `${first.toLowerCase()}.${last.toLowerCase()}@${pick(['example', 'test', 'demo'])}.com`,
+      company: pick(companies),
+      interestedIn: pick(interests),
+    })
+  }
+
   const handleLead = async () => {
     setLeadStatus('loading')
     const r = await labFetch<Record<string, unknown>>('/api/lab/lead-capture', {
@@ -248,7 +264,10 @@ export default function LabPage() {
                     />
                   ))}
                 </div>
-                <button className={btnClass} onClick={handleLead} disabled={leadStatus === 'loading'}>Submit</button>
+                <div className="flex gap-2">
+                  <button className={btnClass} onClick={randomizeLead}>Randomize</button>
+                  <button className={btnClass} onClick={handleLead} disabled={leadStatus === 'loading'}>Submit</button>
+                </div>
                 {leadResult && <ResultDisplay data={leadResult} traceId={leadTraceId} />}
               </LabCard>
             </LabSection>

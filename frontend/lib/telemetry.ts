@@ -2,8 +2,8 @@ import {trace, SpanStatusCode, SpanKind} from '@opentelemetry/api'
 import {logs, SeverityNumber} from '@opentelemetry/api-logs'
 import {SERVICE_NAME, DEPLOY_ENV, DEPLOY_REGION} from '@/lib/config'
 
-const LAB_TRACER_NAME = 'martech-pulse.lab'
-const LAB_LOGGER_NAME = 'martech-pulse.lab'
+const LAB_TRACER_NAME = `${SERVICE_NAME}.lab`
+const LAB_LOGGER_NAME = `${SERVICE_NAME}.lab`
 
 const SEVERITY: Record<'info' | 'warn' | 'error', SeverityNumber> = {
   info: SeverityNumber.INFO,

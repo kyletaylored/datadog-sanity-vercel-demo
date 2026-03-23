@@ -9,6 +9,7 @@ export const BRAND = {
     {label: 'Resources', href: '/resources'},
     {label: 'Case Studies', href: '/case-studies'},
     {label: '⚡ Signal Lab', href: '/lab'},
+    {label: 'Setup Guide', href: '/setup'},
   ],
   footerLinks: ['Privacy', 'Terms', 'Security', 'Status'],
   socialProof: ['Acme Corp', 'Globex', 'Initech', 'Umbrella Co', 'Hooli'],
