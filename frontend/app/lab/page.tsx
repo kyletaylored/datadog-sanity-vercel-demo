@@ -78,6 +78,10 @@ export default function LabPage() {
 
   const [envData, setEnvData] = useState<Record<string, string> | null>(null)
 
+  const [debugPassword, setDebugPassword] = useState('')
+  const [debugStatus, setDebugStatus] = useState<Status>('idle')
+  const [debugResult, setDebugResult] = useState<Record<string, unknown> | null>(null)
+
   useEffect(() => {
     labFetch<Record<string, string>>('/api/lab/env-info').then((r) => {
       if (r.data) setEnvData(r.data)
@@ -154,6 +158,17 @@ export default function LabPage() {
     setAttrTraceId(r.traceId)
     setAttrResult(r.data)
     setAttrStatus(r.error ? 'error' : 'success')
+  }
+
+  const handleDebugEnv = async () => {
+    setDebugStatus('loading')
+    const r = await labFetch<Record<string, unknown>>('/api/lab/debug-env', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password: debugPassword}),
+    })
+    setDebugResult(r.data)
+    setDebugStatus(r.error ? 'error' : 'success')
   }
 
   const handleChain = async () => {
@@ -364,6 +379,24 @@ export default function LabPage() {
                   <button className={btnClass} onClick={handleAttr} disabled={attrStatus === 'loading'}>Set</button>
                 </div>
                 {attrResult && <ResultDisplay data={attrResult} traceId={attrTraceId} />}
+              </LabCard>
+            </LabSection>
+
+            {/* Debug */}
+            <LabSection title="Debug" icon={Terminal}>
+              <LabCard title="Environment Inspector" description="POST /api/lab/debug-env — requires DEBUG_SECRET passcode. Sensitive keys are redacted." status={debugStatus}>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="password"
+                    placeholder="Passcode"
+                    value={debugPassword}
+                    onChange={(e) => setDebugPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleDebugEnv()}
+                    className="flex-1 border rounded px-3 py-2 text-sm font-mono"
+                  />
+                  <button className={btnClass} onClick={handleDebugEnv} disabled={debugStatus === 'loading'}>Inspect</button>
+                </div>
+                {debugResult && <ResultDisplay data={debugResult} />}
               </LabCard>
             </LabSection>
 
