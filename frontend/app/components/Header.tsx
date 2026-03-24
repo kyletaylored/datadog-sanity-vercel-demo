@@ -62,7 +62,8 @@ export default function Header() {
                         {item.label}
                       </Link>
                       {resourcesOpen && (
-                        <ul className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-36 z-50">
+                        <div className="absolute left-0 top-full pt-1 z-50">
+                      <ul className="bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-36">
                           {item.children.map((child) => (
                             <li key={child.href}>
                               <Link
@@ -76,6 +77,7 @@ export default function Header() {
                             </li>
                           ))}
                         </ul>
+                      </div>
                       )}
                     </li>
                   )
