@@ -82,6 +82,8 @@ export default function LabPage() {
   const [debugStatus, setDebugStatus] = useState<Status>('idle')
   const [debugResult, setDebugResult] = useState<Record<string, unknown> | null>(null)
 
+  const otlpDirect = useLabAction('/api/lab/otel-direct')
+
   useEffect(() => {
     labFetch<Record<string, string>>('/api/lab/env-info').then((r) => {
       if (r.data) setEnvData(r.data)
@@ -397,6 +399,11 @@ export default function LabPage() {
                   <button className={btnClass} onClick={handleDebugEnv} disabled={debugStatus === 'loading'}>Inspect</button>
                 </div>
                 {debugResult && <ResultDisplay data={debugResult} />}
+              </LabCard>
+
+              <LabCard title="Direct OTLP Test" description="GET /api/lab/otel-direct — send a raw trace + log directly to the Vercel sidecar collector (localhost:4318) to verify what signals it accepts." status={otlpDirect.status}>
+                <button className={btnClass} onClick={() => otlpDirect.trigger()} disabled={otlpDirect.status === 'loading'}>Send</button>
+                {otlpDirect.result && <ResultDisplay data={otlpDirect.result} traceId={otlpDirect.traceId} />}
               </LabCard>
             </LabSection>
 
