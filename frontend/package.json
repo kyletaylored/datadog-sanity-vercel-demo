@@ -1,5 +1,6 @@
 {
-  "name": "frontend",
+  "name": "datadog-vercel-nextjs-frontend",
+  "description": "Next.js frontend for the Datadog + Vercel + OTel demo — includes Signal Lab for triggering traces, logs, errors, and OTLP diagnostic tests.",
   "private": true,
   "scripts": {
     "prebuild": "sanity typegen generate",

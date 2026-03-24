@@ -1,17 +1,19 @@
 {
-  "name": "sanity-template-nextjs-clean",
-  "description": "Next.js + Sanity: A Powerful Website Starter with Real-time Visual Editing",
+  "name": "datadog-vercel-nextjs-otel-demo",
+  "description": "Minimum-effort reference implementation for Next.js on Vercel with OpenTelemetry sending traces and logs to Datadog — using @vercel/otel, Sanity CMS, and Datadog RUM.",
   "keywords": [
-    "Sanity",
+    "Datadog",
+    "OpenTelemetry",
     "Next.js",
-    "Headless CMS",
-    "Visual Editing",
-    "Live Content API (LCAPI)",
-    "Real-time"
+    "Vercel",
+    "Sanity",
+    "APM",
+    "RUM",
+    "Observability"
   ],
-  "homepage": "https://github.com/sanity-io/sanity-template-nextjs-clean#readme",
+  "homepage": "https://github.com/kyletaylored/datadog-sanity-vercel-demo#readme",
   "bugs": {
-    "url": "https://github.com/sanity-io/sanity-template-nextjs-clean/issues"
+    "url": "https://github.com/kyletaylored/datadog-sanity-vercel-demo/issues"
   },
   "workspaces": [
     "studio",
