@@ -1,38 +1,28 @@
 /**
  * Canonical runtime config shared across server (API routes, telemetry, OTel)
- * and client (RUM, lab page) code.
+ * and client (RUM, datadog-init) code.
  *
- * Service name: NEXT_PUBLIC_VERCEL_PROJECT_NAME is checked first — it can be
- * explicitly set in Vercel Project Settings and works in both server and client
- * contexts. VERCEL_PROJECT_NAME (Vercel system var) is the server-side fallback.
+ * All NEXT_PUBLIC_ values are baked into the client bundle at build time by
+ * next.config.ts (which forwards Vercel system vars like VERCEL_PROJECT_NAME
+ * and VERCEL_ENV). Server-only vars (OTEL_SERVICE_NAME, VERCEL_PROJECT_NAME)
+ * only resolve in server contexts such as instrumentation.ts and API routes.
  *
- * Env names: Vercel uses "production"/"development"/"preview". We shorten these
- * to "prod"/"dev"/"preview" to match Datadog conventions.
+ * Env: use the raw Vercel value ("production" / "preview" / "development").
+ * Do not shorten — Vercel's drain and sidecar emit "production" directly, and
+ * mapping to "prod" creates a mismatch in Datadog between RUM and APM/Logs.
  */
 
-// OTEL_SERVICE_NAME is the standard OTel env var — @vercel/otel and the OTel SDK
-// respect it and it takes precedence over the programmatic serviceName option.
-// The Datadog Vercel integration may inject it. Checking it first ensures logs
-// and traces use the same service name.
+// OTEL_SERVICE_NAME is the standard OTel env var respected by @vercel/otel.
+// Server-only; falls through to NEXT_PUBLIC_VERCEL_PROJECT_NAME on the client.
 export const SERVICE_NAME =
   process.env.OTEL_SERVICE_NAME ??
   process.env.NEXT_PUBLIC_VERCEL_PROJECT_NAME ??
-  process.env.VERCEL_PROJECT_NAME ??
   'my-service'
 
-const ENV_ALIASES: Record<string, string> = {
-  production: 'prod',
-  development: 'dev',
-}
-
-function toShortEnv(raw: string | undefined): string {
-  const v = raw ?? 'development'
-  return ENV_ALIASES[v] ?? v
-}
-
-export const DEPLOY_ENV = toShortEnv(
-  process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV,
-)
+// NEXT_PUBLIC_VERCEL_ENV is baked by next.config.ts from VERCEL_ENV at build
+// time so it is available in both server and client (browser) contexts.
+export const DEPLOY_ENV =
+  process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV ?? 'development'
 
 export const SERVICE_VERSION =
   (
