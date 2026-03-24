@@ -149,8 +149,8 @@ export async function GET() {
   const ddOtlpSource = process.env.DD_OTLP_SOURCE
   const ddSite = process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com'
   const ddBase = `https://otlp.${ddSite}`
-  const ddBaseHeaders = ddApiKey ? {'dd-api-key': ddApiKey} : {}
-  const ddTraceHeaders = ddOtlpSource
+  const ddBaseHeaders: Record<string, string> = ddApiKey ? {'dd-api-key': ddApiKey} : {}
+  const ddTraceHeaders: Record<string, string> = ddOtlpSource
     ? {...ddBaseHeaders, 'dd-otlp-source': ddOtlpSource}
     : ddBaseHeaders
   const ddAvailable = !!ddApiKey

@@ -94,9 +94,10 @@ export default function SetupPage() {
         </ul>
         <Note>
           <Code>VERCEL_OTEL_ENDPOINTS</Code> is <strong>not</strong> a direct Datadog URL — it configures a
-          local sidecar collector. Send OTel signals to <Code>http://localhost:4318/v1/traces</Code> (traces)
-          and <Code>http://localhost:4318/v1/logs</Code> (logs). <Code>@vercel/otel</Code> handles traces
-          automatically; logs need manual wiring (see Step 3).
+          local sidecar collector at <Code>localhost:4318</Code>. <Code>@vercel/otel</Code> sends traces
+          there automatically. The sidecar only forwards <Code>/v1/traces</Code>; <Code>/v1/logs</Code>{' '}
+          returns 503 (no Datadog logs endpoint configured in the sidecar). Logs reach Datadog
+          exclusively via the console → Vercel log drain path.
         </Note>
 
         {/* ── instrumentation.ts ────────────────────────── */}
@@ -108,30 +109,21 @@ export default function SetupPage() {
         </Note>
         <Pre>{`// instrumentation.ts  ← project root, NOT app/instrumentation.ts
 import { registerOTel } from '@vercel/otel'
-import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 
 export function register() {
-  // Use Vercel's sidecar collector for logs (same path as traces).
-  // Falls back to OTEL_EXPORTER_OTLP_LOGS_ENDPOINT outside Vercel.
-  const collectorPort = process.env.VERCEL_OTEL_ENDPOINTS_PORT ?? '4318'
-  const logExporter = process.env.VERCEL_OTEL_ENDPOINTS
-    ? new OTLPLogExporter({ url: \`http://localhost:\${collectorPort}/v1/logs\` })
-    : new OTLPLogExporter()
-
+  // Vercel's sidecar collector (localhost:4318) accepts /v1/traces only.
+  // Logs reach Datadog via the console → Vercel log drain, not OTLP.
   registerOTel({
     serviceName: process.env.NEXT_PUBLIC_VERCEL_PROJECT_NAME ?? 'my-service',
     attributes: {
       'deployment.environment': process.env.VERCEL_ENV ?? 'development',
       'service.version': process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local',
     },
-    logRecordProcessors: [new BatchLogRecordProcessor(logExporter)],
   })
 }`}</Pre>
 
         <H3>Required packages</H3>
-        <Pre>{`npm install @vercel/otel @opentelemetry/api @opentelemetry/api-logs \\
-  @opentelemetry/sdk-logs @opentelemetry/exporter-logs-otlp-http`}</Pre>
+        <Pre>{`npm install @vercel/otel @opentelemetry/api @opentelemetry/api-logs`}</Pre>
 
         {/* ── RUM ───────────────────────────────────────── */}
         <H2>Step 3 — Initialize Datadog RUM (browser)</H2>
@@ -294,14 +286,17 @@ npx @datadog/datadog-ci sourcemaps upload .next/server \\
             ['NEXT_PUBLIC_DD_APPLICATION_ID', 'Yes', 'RUM application ID from Datadog'],
             ['NEXT_PUBLIC_DD_CLIENT_TOKEN', 'Yes', 'RUM/Logs client token from Datadog'],
             ['NEXT_PUBLIC_DD_SITE', 'No', 'Defaults to datadoghq.com'],
-            ['DATADOG_API_KEY', 'Yes (sourcemaps)', 'Server-only. Used only in postbuild script'],
-            ['NEXT_PUBLIC_VERCEL_PROJECT_NAME', 'Recommended', 'Set manually — NEXT_PUBLIC_ makes it available at build time and in the browser. Vercel\'s built-in VERCEL_PROJECT_NAME is server-only'],
+            ['DATADOG_API_KEY', 'Yes (sourcemaps)', 'Server-only. Used by postbuild sourcemap upload script and direct OTLP tests'],
+            ['NEXT_PUBLIC_VERCEL_PROJECT_NAME', 'Recommended', "Set manually — NEXT_PUBLIC_ makes it available at build time and in the browser. Vercel's built-in VERCEL_PROJECT_NAME is server-only"],
+            ['DD_OTLP_SOURCE', 'Optional', 'Secret value sent as dd-otlp-source header on direct OTLP trace requests to https://otlp.{site}/v1/traces. Only used by the Signal Lab diagnostic test — not part of the standard @vercel/otel trace path.'],
+            ['DEBUG_SECRET', 'Optional', 'Passcode for the Signal Lab environment inspector (/api/lab/debug-env). Set to any secret string.'],
           ]}
         />
         <Note>
           <Code>VERCEL_OTEL_ENDPOINTS</Code> is injected automatically by the Vercel–Datadog
-          integration. Do not set it manually. Its value contains a Datadog API key — avoid
-          logging <Code>process.env</Code> in full.
+          integration at runtime. Do not set it manually. Its value contains a Datadog API key
+          embedded in JSON — avoid logging <Code>process.env</Code> in full, as key-based
+          redaction won&apos;t catch values nested inside other variables.
         </Note>
 
         {/* ── Gotchas ───────────────────────────────────── */}

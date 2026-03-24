@@ -196,30 +196,59 @@ export default function LabPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
-          <aside className="lg:col-span-1 space-y-4">
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="font-semibold text-sm text-gray-900 mb-3">Environment</h3>
-              {envData ? (
-                <dl className="space-y-2 text-xs font-mono">
-                  {Object.entries(envData).filter(([k]) => k !== 'traceId').map(([k, v]) => (
-                    <div key={k}>
-                      <dt className="text-gray-400">{k}</dt>
-                      <dd className="text-gray-900 truncate">{String(v)}</dd>
-                    </div>
+          <aside className="lg:col-span-1">
+            <div className="sticky top-28 space-y-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 className="font-semibold text-sm text-gray-900 mb-3">Sections</h3>
+                <ul className="text-xs space-y-1 font-mono text-gray-600">
+                  {[
+                    {id: 'section-api', label: 'API Triggers'},
+                    {id: 'section-forms', label: 'Forms'},
+                    {id: 'section-search', label: 'Campaign Search'},
+                    {id: 'section-proxy', label: 'Proxy'},
+                    {id: 'section-logs', label: 'Log Emitter'},
+                    {id: 'section-debug', label: 'Debug'},
+                    {id: 'section-errors', label: 'Error Triggers'},
+                  ].map(({id, label}) => (
+                    <li key={id}>
+                      <a
+                        href={`#${id}`}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
+                        }}
+                        className="block py-1 px-2 rounded hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                      >
+                        {label}
+                      </a>
+                    </li>
                   ))}
-                </dl>
-              ) : (
-                <p className="text-xs text-gray-400">Loading env info...</p>
-              )}
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="font-semibold text-sm text-gray-900 mb-3">Quick Links</h3>
-              <ul className="text-xs space-y-2 font-mono text-gray-600">
-                <li><a href="/api/lab/health" target="_blank" className="hover:underline">/api/lab/health ↗</a></li>
-                <li><a href="/api/lab/env-info" target="_blank" className="hover:underline">/api/lab/env-info ↗</a></li>
-                <li><a href="/api/lab/cms-fetch" target="_blank" className="hover:underline">/api/lab/cms-fetch ↗</a></li>
-                <li><a href="/api/lab/flags" target="_blank" className="hover:underline">/api/lab/flags ↗</a></li>
-              </ul>
+                </ul>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 className="font-semibold text-sm text-gray-900 mb-3">Environment</h3>
+                {envData ? (
+                  <dl className="space-y-2 text-xs font-mono">
+                    {Object.entries(envData).filter(([k]) => k !== 'traceId').map(([k, v]) => (
+                      <div key={k}>
+                        <dt className="text-gray-400">{k}</dt>
+                        <dd className="text-gray-900 truncate">{String(v)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <p className="text-xs text-gray-400">Loading env info...</p>
+                )}
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 className="font-semibold text-sm text-gray-900 mb-3">Quick Links</h3>
+                <ul className="text-xs space-y-2 font-mono text-gray-600">
+                  <li><a href="/api/lab/health" target="_blank" className="hover:underline">/api/lab/health ↗</a></li>
+                  <li><a href="/api/lab/env-info" target="_blank" className="hover:underline">/api/lab/env-info ↗</a></li>
+                  <li><a href="/api/lab/cms-fetch" target="_blank" className="hover:underline">/api/lab/cms-fetch ↗</a></li>
+                  <li><a href="/api/lab/flags" target="_blank" className="hover:underline">/api/lab/flags ↗</a></li>
+                </ul>
+              </div>
             </div>
           </aside>
 
@@ -227,7 +256,7 @@ export default function LabPage() {
           <div className="lg:col-span-3 space-y-6">
 
             {/* API Triggers */}
-            <LabSection title="API Triggers" icon={Activity}>
+            <div id="section-api"><LabSection title="API Triggers" icon={Activity}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <LabCard title="Health Check" description="GET /api/lab/health — basic liveness check with trace." status={health.status}>
                   <button className={btnClass} onClick={() => health.trigger()} disabled={health.status === 'loading'}>Trigger</button>
@@ -265,10 +294,10 @@ export default function LabPage() {
                   {chainResult && <ResultDisplay data={chainResult} traceId={chainTraceId} />}
                 </LabCard>
               </div>
-            </LabSection>
+            </LabSection></div>
 
             {/* Forms */}
-            <LabSection title="Forms" icon={FileText}>
+            <div id="section-forms"><LabSection title="Forms" icon={FileText}>
               <LabCard title="Lead Capture" description="POST /api/lab/lead-capture — validates and logs a form submission." status={leadStatus}>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   {(['name', 'email', 'company', 'interestedIn'] as const).map((f) => (
@@ -287,10 +316,10 @@ export default function LabPage() {
                 </div>
                 {leadResult && <ResultDisplay data={leadResult} traceId={leadTraceId} />}
               </LabCard>
-            </LabSection>
+            </LabSection></div>
 
             {/* Search */}
-            <LabSection title="Campaign Search" icon={Search}>
+            <div id="section-search"><LabSection title="Campaign Search" icon={Search}>
               <LabCard title="Search Posts" description="GET /api/lab/campaign-search?q= — Sanity GROQ search." status={searchStatus}>
                 <div className="flex gap-2 mb-3">
                   <input
@@ -304,10 +333,10 @@ export default function LabPage() {
                 </div>
                 {searchResult && <ResultDisplay data={searchResult} traceId={searchTraceId} />}
               </LabCard>
-            </LabSection>
+            </LabSection></div>
 
             {/* Proxy */}
-            <LabSection title="Proxy" icon={Globe}>
+            <div id="section-proxy"><LabSection title="Proxy" icon={Globe}>
               <LabCard title="Outbound Proxy" description="POST /api/lab/proxy — fetch an external URL through the server." status={proxyStatus}>
                 <div className="space-y-3 mb-3">
                   <input
@@ -336,10 +365,10 @@ export default function LabPage() {
                 <button className={btnClass} onClick={handleProxy} disabled={proxyStatus === 'loading'}>Send</button>
                 {proxyResult && <ResultDisplay data={proxyResult} traceId={proxyTraceId} />}
               </LabCard>
-            </LabSection>
+            </LabSection></div>
 
             {/* Log Emitter */}
-            <LabSection title="Log Emitter" icon={Terminal}>
+            <div id="section-logs"><LabSection title="Log Emitter" icon={Terminal}>
               <LabCard title="Log Burst" description="POST /api/lab/log-burst — emit N structured log lines." status={burstStatus}>
                 <div className="flex gap-3 items-center mb-3">
                   <input
@@ -382,10 +411,10 @@ export default function LabPage() {
                 </div>
                 {attrResult && <ResultDisplay data={attrResult} traceId={attrTraceId} />}
               </LabCard>
-            </LabSection>
+            </LabSection></div>
 
             {/* Debug */}
-            <LabSection title="Debug" icon={Terminal}>
+            <div id="section-debug"><LabSection title="Debug" icon={Terminal}>
               <LabCard title="Environment Inspector" description="POST /api/lab/debug-env — requires DEBUG_SECRET passcode. Sensitive keys are redacted." status={debugStatus}>
                 <div className="flex gap-2 mb-3">
                   <input
@@ -405,10 +434,10 @@ export default function LabPage() {
                 <button className={btnClass} onClick={() => otlpDirect.trigger()} disabled={otlpDirect.status === 'loading'}>Send</button>
                 {otlpDirect.result && <ResultDisplay data={otlpDirect.result} traceId={otlpDirect.traceId} />}
               </LabCard>
-            </LabSection>
+            </LabSection></div>
 
             {/* Error Triggers */}
-            <LabSection title="Error Triggers" icon={AlertTriangle}>
+            <div id="section-errors"><LabSection title="Error Triggers" icon={AlertTriangle}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <LabCard title="Handled Error" description="GET /api/lab/handled-error — throws and catches, returns 500." status={handledError.status}>
                   <button className={btnClass} onClick={() => handledError.trigger()} disabled={handledError.status === 'loading'}>Trigger</button>
@@ -419,7 +448,7 @@ export default function LabPage() {
                   {unhandledError.result && <ResultDisplay data={unhandledError.result} traceId={unhandledError.traceId} />}
                 </LabCard>
               </div>
-            </LabSection>
+            </LabSection></div>
 
           </div>
         </div>
