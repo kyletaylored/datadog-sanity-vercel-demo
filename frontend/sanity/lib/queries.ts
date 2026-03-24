@@ -53,6 +53,15 @@ export const getPageQuery = defineQuery(`
           }
         }
       },
+      _type == "featureGrid" => {
+        ...
+      },
+      _type == "pricingTable" => {
+        ...
+      },
+      _type == "leadCaptureForm" => {
+        ...
+      },
     },
   }
 `)

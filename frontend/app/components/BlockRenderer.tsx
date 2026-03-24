@@ -2,6 +2,9 @@ import React from 'react'
 
 import Cta from '@/app/components/Cta'
 import Info from '@/app/components/InfoSection'
+import FeatureGrid from '@/app/components/FeatureGrid'
+import PricingTable from '@/app/components/PricingTable'
+import LeadCaptureForm from '@/app/components/LeadCaptureForm'
 import {dataAttr} from '@/sanity/lib/utils'
 import {PageBuilderSection} from '@/sanity/lib/types'
 
@@ -19,6 +22,9 @@ type BlocksType = {
 const Blocks = {
   callToAction: Cta,
   infoSection: Info,
+  featureGrid: FeatureGrid,
+  pricingTable: PricingTable,
+  leadCaptureForm: LeadCaptureForm,
 } as BlocksType
 
 /**

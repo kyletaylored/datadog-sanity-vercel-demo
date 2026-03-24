@@ -38,6 +38,87 @@ export type Link = {
   openInNewTab?: boolean
 }
 
+export type LeadCaptureForm = {
+  _type: 'leadCaptureForm'
+  heading?: string
+  subheading?: string
+  ctaLabel?: string
+  successMessage?: string
+  showCompany?: boolean
+  showInterest?: boolean
+  interestOptions?: Array<string>
+  showMessage?: boolean
+  background?: 'white' | 'gray' | 'dark'
+  containerWidth?: 'boxed' | 'full'
+}
+
+export type PricingTable = {
+  _type: 'pricingTable'
+  heading?: string
+  subheading?: string
+  background?: 'white' | 'gray' | 'dark'
+  containerWidth?: 'boxed' | 'full'
+  tiers?: Array<{
+    name: string
+    price?: string
+    period?: string
+    description?: string
+    features?: Array<string>
+    ctaLabel?: string
+    ctaHref?: string
+    highlighted?: boolean
+    _type: 'pricingTier'
+    _key: string
+  }>
+}
+
+export type FeatureGrid = {
+  _type: 'featureGrid'
+  heading?: string
+  subheading?: string
+  columns?: 2 | 3 | 4
+  background?: 'white' | 'gray' | 'dark'
+  containerWidth?: 'boxed' | 'full'
+  items?: Array<{
+    icon?:
+      | 'Activity'
+      | 'BarChart3'
+      | 'Bell'
+      | 'Check'
+      | 'Code'
+      | 'Cpu'
+      | 'Database'
+      | 'Eye'
+      | 'FileText'
+      | 'Filter'
+      | 'GitBranch'
+      | 'Globe'
+      | 'Key'
+      | 'Layers'
+      | 'Lock'
+      | 'Map'
+      | 'Monitor'
+      | 'Package'
+      | 'Search'
+      | 'Server'
+      | 'Settings'
+      | 'Shield'
+      | 'Sliders'
+      | 'Star'
+      | 'Tag'
+      | 'Terminal'
+      | 'Truck'
+      | 'Users'
+      | 'Workflow'
+      | 'Zap'
+    title: string
+    description?: string
+    href?: string
+    _type: 'featureItem'
+    _key: string
+  }>
+}
+
 export type SanityImageAssetReference = {
   _ref: string
   _type: 'reference'
@@ -127,6 +208,21 @@ export type Button = {
   link?: Link
 }
 
+export type Lead = {
+  _id: string
+  _type: 'lead'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name?: string
+  email?: string
+  company?: string
+  interestedIn?: string
+  message?: string
+  submittedAt?: string
+  source?: string
+}
+
 export type Settings = {
   _id: string
   _type: 'settings'
@@ -201,6 +297,15 @@ export type Page = {
     | ({
         _key: string
       } & InfoSection)
+    | ({
+        _key: string
+      } & FeatureGrid)
+    | ({
+        _key: string
+      } & PricingTable)
+    | ({
+        _key: string
+      } & LeadCaptureForm)
   >
 }
 
@@ -498,12 +603,16 @@ export type AllSanitySchemaTypes =
   | PageReference
   | PostReference
   | Link
+  | LeadCaptureForm
+  | PricingTable
+  | FeatureGrid
   | SanityImageAssetReference
   | CallToAction
   | InfoSection
   | BlockContentTextOnly
   | BlockContent
   | Button
+  | Lead
   | Settings
   | SanityImageCrop
   | SanityImageHotspot
@@ -580,7 +689,7 @@ export type SettingsQueryResult = {
 
 // Source: sanity/lib/queries.ts
 // Variable: getPageQuery
-// Query: *[_type == 'page' && slug.current == $slug][0]{    _id,    _type,    name,    slug,    heading,    subheading,    "pageBuilder": pageBuilder[]{      ...,      _type == "callToAction" => {        ...,        button {          ...,            link {      ...,        _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }        }      },      _type == "infoSection" => {        content[]{          ...,          markDefs[]{            ...,              _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }          }        }      },    },  }
+// Query: *[_type == 'page' && slug.current == $slug][0]{    _id,    _type,    name,    slug,    heading,    subheading,    "pageBuilder": pageBuilder[]{      ...,      _type == "callToAction" => {        ...,        button {          ...,            link {      ...,        _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }        }      },      _type == "infoSection" => {        content[]{          ...,          markDefs[]{            ...,              _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }          }        }      },      _type == "featureGrid" => {        ...      },      _type == "pricingTable" => {        ...      },      _type == "leadCaptureForm" => {        ...      },    },  }
 export type GetPageQueryResult = {
   _id: string
   _type: 'page'
@@ -616,6 +725,53 @@ export type GetPageQueryResult = {
         }
         theme?: 'dark' | 'light'
         contentAlignment?: 'imageFirst' | 'textFirst'
+      }
+    | {
+        _key: string
+        _type: 'featureGrid'
+        heading?: string
+        subheading?: string
+        columns?: 2 | 3 | 4
+        background?: 'dark' | 'gray' | 'white'
+        containerWidth?: 'boxed' | 'full'
+        items?: Array<{
+          icon?:
+            | 'Activity'
+            | 'BarChart3'
+            | 'Bell'
+            | 'Check'
+            | 'Code'
+            | 'Cpu'
+            | 'Database'
+            | 'Eye'
+            | 'FileText'
+            | 'Filter'
+            | 'GitBranch'
+            | 'Globe'
+            | 'Key'
+            | 'Layers'
+            | 'Lock'
+            | 'Map'
+            | 'Monitor'
+            | 'Package'
+            | 'Search'
+            | 'Server'
+            | 'Settings'
+            | 'Shield'
+            | 'Sliders'
+            | 'Star'
+            | 'Tag'
+            | 'Terminal'
+            | 'Truck'
+            | 'Users'
+            | 'Workflow'
+            | 'Zap'
+          title: string
+          description?: string
+          href?: string
+          _type: 'featureItem'
+          _key: string
+        }>
       }
     | {
         _key: string
@@ -655,6 +811,40 @@ export type GetPageQueryResult = {
               markDefs: null
             }
         > | null
+      }
+    | {
+        _key: string
+        _type: 'leadCaptureForm'
+        heading?: string
+        subheading?: string
+        ctaLabel?: string
+        successMessage?: string
+        showCompany?: boolean
+        showInterest?: boolean
+        interestOptions?: Array<string>
+        showMessage?: boolean
+        background?: 'dark' | 'gray' | 'white'
+        containerWidth?: 'boxed' | 'full'
+      }
+    | {
+        _key: string
+        _type: 'pricingTable'
+        heading?: string
+        subheading?: string
+        background?: 'dark' | 'gray' | 'white'
+        containerWidth?: 'boxed' | 'full'
+        tiers?: Array<{
+          name: string
+          price?: string
+          period?: string
+          description?: string
+          features?: Array<string>
+          ctaLabel?: string
+          ctaHref?: string
+          highlighted?: boolean
+          _type: 'pricingTier'
+          _key: string
+        }>
       }
   > | null
 } | null
@@ -860,7 +1050,7 @@ import '@sanity/client'
 declare module '@sanity/client' {
   interface SanityQueries {
     '*[_type == "settings"][0]': SettingsQueryResult
-    '\n  *[_type == \'page\' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    "pageBuilder": pageBuilder[]{\n      ...,\n      _type == "callToAction" => {\n        ...,\n        button {\n          ...,\n          \n  link {\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n\n        }\n      },\n      _type == "infoSection" => {\n        content[]{\n          ...,\n          markDefs[]{\n            ...,\n            \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n          }\n        }\n      },\n    },\n  }\n': GetPageQueryResult
+    '\n  *[_type == \'page\' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    "pageBuilder": pageBuilder[]{\n      ...,\n      _type == "callToAction" => {\n        ...,\n        button {\n          ...,\n          \n  link {\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n\n        }\n      },\n      _type == "infoSection" => {\n        content[]{\n          ...,\n          markDefs[]{\n            ...,\n            \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n          }\n        }\n      },\n      _type == "featureGrid" => {\n        ...\n      },\n      _type == "pricingTable" => {\n        ...\n      },\n      _type == "leadCaptureForm" => {\n        ...\n      },\n    },\n  }\n': GetPageQueryResult
     '\n  *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {\n    "slug": slug.current,\n    _type,\n    _updatedAt,\n  }\n': SitemapDataResult
     '\n  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': AllPostsQueryResult
     '\n  *[_type == "post" && _id != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': MorePostsQueryResult

@@ -1,8 +1,12 @@
 import {person} from './documents/person'
 import {page} from './documents/page'
 import {post} from './documents/post'
+import {lead} from './documents/lead'
 import {callToAction} from './objects/callToAction'
 import {infoSection} from './objects/infoSection'
+import {featureGrid} from './objects/featureGrid'
+import {pricingTable} from './objects/pricingTable'
+import {leadCaptureForm} from './objects/leadCaptureForm'
 import {settings} from './singletons/settings'
 import {link} from './objects/link'
 import {blockContent} from './objects/blockContent'
@@ -18,11 +22,15 @@ export const schemaTypes = [
   page,
   post,
   person,
+  lead,
   // Objects
   button,
   blockContent,
   blockContentTextOnly,
   infoSection,
   callToAction,
+  featureGrid,
+  pricingTable,
+  leadCaptureForm,
   link,
 ]

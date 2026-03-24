@@ -38,6 +38,87 @@ export type Link = {
   openInNewTab?: boolean
 }
 
+export type LeadCaptureForm = {
+  _type: 'leadCaptureForm'
+  heading?: string
+  subheading?: string
+  ctaLabel?: string
+  successMessage?: string
+  showCompany?: boolean
+  showInterest?: boolean
+  interestOptions?: Array<string>
+  showMessage?: boolean
+  background?: 'white' | 'gray' | 'dark'
+  containerWidth?: 'boxed' | 'full'
+}
+
+export type PricingTable = {
+  _type: 'pricingTable'
+  heading?: string
+  subheading?: string
+  background?: 'white' | 'gray' | 'dark'
+  containerWidth?: 'boxed' | 'full'
+  tiers?: Array<{
+    name: string
+    price?: string
+    period?: string
+    description?: string
+    features?: Array<string>
+    ctaLabel?: string
+    ctaHref?: string
+    highlighted?: boolean
+    _type: 'pricingTier'
+    _key: string
+  }>
+}
+
+export type FeatureGrid = {
+  _type: 'featureGrid'
+  heading?: string
+  subheading?: string
+  columns?: 2 | 3 | 4
+  background?: 'white' | 'gray' | 'dark'
+  containerWidth?: 'boxed' | 'full'
+  items?: Array<{
+    icon?:
+      | 'Activity'
+      | 'BarChart3'
+      | 'Bell'
+      | 'Check'
+      | 'Code'
+      | 'Cpu'
+      | 'Database'
+      | 'Eye'
+      | 'FileText'
+      | 'Filter'
+      | 'GitBranch'
+      | 'Globe'
+      | 'Key'
+      | 'Layers'
+      | 'Lock'
+      | 'Map'
+      | 'Monitor'
+      | 'Package'
+      | 'Search'
+      | 'Server'
+      | 'Settings'
+      | 'Shield'
+      | 'Sliders'
+      | 'Star'
+      | 'Tag'
+      | 'Terminal'
+      | 'Truck'
+      | 'Users'
+      | 'Workflow'
+      | 'Zap'
+    title: string
+    description?: string
+    href?: string
+    _type: 'featureItem'
+    _key: string
+  }>
+}
+
 export type SanityImageAssetReference = {
   _ref: string
   _type: 'reference'
@@ -127,6 +208,21 @@ export type Button = {
   link?: Link
 }
 
+export type Lead = {
+  _id: string
+  _type: 'lead'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  name?: string
+  email?: string
+  company?: string
+  interestedIn?: string
+  message?: string
+  submittedAt?: string
+  source?: string
+}
+
 export type Settings = {
   _id: string
   _type: 'settings'
@@ -201,6 +297,15 @@ export type Page = {
     | ({
         _key: string
       } & InfoSection)
+    | ({
+        _key: string
+      } & FeatureGrid)
+    | ({
+        _key: string
+      } & PricingTable)
+    | ({
+        _key: string
+      } & LeadCaptureForm)
   >
 }
 
@@ -498,12 +603,16 @@ export type AllSanitySchemaTypes =
   | PageReference
   | PostReference
   | Link
+  | LeadCaptureForm
+  | PricingTable
+  | FeatureGrid
   | SanityImageAssetReference
   | CallToAction
   | InfoSection
   | BlockContentTextOnly
   | BlockContent
   | Button
+  | Lead
   | Settings
   | SanityImageCrop
   | SanityImageHotspot
