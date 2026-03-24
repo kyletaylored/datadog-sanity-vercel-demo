@@ -6,10 +6,13 @@ export const BRAND = {
   nav: [
     {label: 'Platform', href: '/platform'},
     {label: 'Solutions', href: '/solutions'},
-    {label: 'Resources', href: '/resources'},
-    {label: 'Case Studies', href: '/case-studies'},
-    {label: '⚡ Signal Lab', href: '/lab'},
+    {
+      label: 'Resources',
+      href: '/resources',
+      children: [{label: 'Case Studies', href: '/case-studies'}],
+    },
     {label: 'Setup Guide', href: '/setup'},
+    {label: '⚡ Signal Lab', href: '/lab'},
   ],
   footerLinks: ['Privacy', 'Terms', 'Security', 'Status'],
   socialProof: ['Acme Corp', 'Globex', 'Initech', 'Umbrella Co', 'Hooli'],

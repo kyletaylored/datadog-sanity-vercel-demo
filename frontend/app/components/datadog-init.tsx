@@ -3,11 +3,13 @@ import { datadogRum } from '@datadog/browser-rum'
 import { datadogLogs } from '@datadog/browser-logs';
 import { SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION } from '@/lib/config'
 
+const rumService = SERVICE_NAME + "-web"
+
 datadogRum.init({
     applicationId: process.env.NEXT_PUBLIC_DD_APPLICATION_ID!,
     clientToken: process.env.NEXT_PUBLIC_DD_CLIENT_TOKEN!,
     site: process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com',
-    service: SERVICE_NAME + "-web",
+    service: rumService,
     env: DEPLOY_ENV,
     version: SERVICE_VERSION,
     sessionSampleRate: 100,
@@ -29,7 +31,7 @@ datadogRum.setGlobalContextProperty(
 datadogLogs.init({
     clientToken: process.env.NEXT_PUBLIC_DD_CLIENT_TOKEN!,
     site: process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com',
-    service: SERVICE_NAME + "-web",
+    service: rumService,
     env: DEPLOY_ENV,
     version: SERVICE_VERSION,
     forwardErrorsToLogs: true,
