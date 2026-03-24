@@ -1,6 +1,7 @@
 'use client'
 
 import {useState} from 'react'
+import {stegaClean} from '@sanity/client/stega'
 import {ExtractPageBuilderType} from '@/sanity/lib/types'
 
 type Props = {
@@ -26,9 +27,9 @@ export default function LeadCaptureForm({block}: Props) {
     showInterest = true,
     interestOptions = [],
     showMessage = false,
-    background = 'gray',
-    containerWidth = 'boxed',
   } = block
+  const background = stegaClean(block.background) ?? 'gray'
+  const containerWidth = stegaClean(block.containerWidth) ?? 'boxed'
 
   const bgClass = BG_CLASS[background] ?? BG_CLASS.gray
   const isDark = background === 'dark'

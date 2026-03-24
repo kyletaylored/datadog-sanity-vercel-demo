@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import {stegaClean} from '@sanity/client/stega'
 import {ExtractPageBuilderType} from '@/sanity/lib/types'
 
 type Props = {
@@ -15,7 +16,9 @@ const BG_CLASS: Record<string, string> = {
 }
 
 export default function PricingTable({block}: Props) {
-  const {heading, subheading, tiers = [], background = 'white', containerWidth = 'boxed'} = block
+  const {heading, subheading, tiers = []} = block
+  const background = stegaClean(block.background) ?? 'white'
+  const containerWidth = stegaClean(block.containerWidth) ?? 'boxed'
   const bgClass = BG_CLASS[background] ?? BG_CLASS.white
   const innerClass = containerWidth === 'full' ? 'w-full px-6' : 'container mx-auto max-w-5xl px-6'
 

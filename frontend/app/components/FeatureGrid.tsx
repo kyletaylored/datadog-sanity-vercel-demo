@@ -1,6 +1,7 @@
 import type {LucideProps} from 'lucide-react'
 import type {FC} from 'react'
 import * as Icons from 'lucide-react'
+import {stegaClean} from '@sanity/client/stega'
 import {ExtractPageBuilderType} from '@/sanity/lib/types'
 
 type Props = {
@@ -60,7 +61,9 @@ const BG_CLASS: Record<string, string> = {
 }
 
 export default function FeatureGrid({block}: Props) {
-  const {heading, subheading, columns = 3, items = [], background = 'gray', containerWidth = 'boxed'} = block
+  const {heading, subheading, columns = 3, items = []} = block
+  const background = stegaClean(block.background) ?? 'gray'
+  const containerWidth = stegaClean(block.containerWidth) ?? 'boxed'
   const colClass = COL_CLASS[columns] ?? COL_CLASS[3]
   const bgClass = BG_CLASS[background] ?? BG_CLASS.gray
   const innerClass = containerWidth === 'full' ? 'w-full px-6' : 'container mx-auto max-w-5xl px-6'
