@@ -10,10 +10,15 @@
  * to "prod"/"dev"/"preview" to match Datadog conventions.
  */
 
+// OTEL_SERVICE_NAME is the standard OTel env var — @vercel/otel and the OTel SDK
+// respect it and it takes precedence over the programmatic serviceName option.
+// The Datadog Vercel integration may inject it. Checking it first ensures logs
+// and traces use the same service name.
 export const SERVICE_NAME =
+  process.env.OTEL_SERVICE_NAME ??
   process.env.NEXT_PUBLIC_VERCEL_PROJECT_NAME ??
   process.env.VERCEL_PROJECT_NAME ??
-  'martech-pulse'
+  'my-service'
 
 const ENV_ALIASES: Record<string, string> = {
   production: 'prod',

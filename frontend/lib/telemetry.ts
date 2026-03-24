@@ -1,4 +1,4 @@
-import {trace, SpanStatusCode, SpanKind} from '@opentelemetry/api'
+import {trace, SpanStatusCode, SpanKind, type Span} from '@opentelemetry/api'
 import {logs, SeverityNumber} from '@opentelemetry/api-logs'
 import {SERVICE_NAME, DEPLOY_ENV, DEPLOY_REGION} from '@/lib/config'
 
@@ -78,7 +78,7 @@ export function structuredLog(
  * which only sets OTel's exception.* attributes.
  */
 export function setSpanError(
-  span: ReturnType<ReturnType<typeof getLabTracer>['startSpan']>,
+  span: Span,
   err: Error | string,
 ): void {
   const error = typeof err === 'string' ? new Error(err) : err
