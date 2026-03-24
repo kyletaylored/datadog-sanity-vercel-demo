@@ -90,7 +90,7 @@ export function DocEnvTable({rows}: {rows: [string, string, string][]}) {
 
 export function DocStep({n, children}: {n: number; children: React.ReactNode}) {
   return (
-    <div className="flex gap-4 py-3 border-b border-gray-100 last:border-0">
+    <div className="flex gap-4 px-4 py-3 border-b border-gray-100 last:border-0">
       <div className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
         {n}
       </div>

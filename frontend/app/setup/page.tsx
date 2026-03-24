@@ -63,7 +63,7 @@ export default function SetupPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-12 items-start">
           {/* Sidebar */}
-          <aside className="hidden lg:block">
+          <aside className="hidden lg:block self-start sticky top-28">
             <DocSidebar sections={SECTIONS} />
           </aside>
 

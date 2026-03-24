@@ -40,7 +40,7 @@ export default function DocSidebar({sections}: {sections: DocSidebarItem[]}) {
   }
 
   return (
-    <nav className="sticky top-28 bg-white rounded-xl border border-gray-200 p-5">
+    <nav className="bg-white rounded-xl border border-gray-200 p-5">
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
         On this page
       </p>
