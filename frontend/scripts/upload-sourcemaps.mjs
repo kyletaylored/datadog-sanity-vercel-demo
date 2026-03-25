@@ -18,7 +18,6 @@ const {
   VERCEL_GIT_COMMIT_SHA,
   NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
   VERCEL_PROJECT_NAME,
-  NEXT_PUBLIC_VERCEL_PROJECT_NAME,
   NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER,
   NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG,
   DATADOG_API_KEY,
@@ -41,7 +40,7 @@ if (!existsSync('.next/static')) {
   process.exit(1)
 }
 
-const service = NEXT_PUBLIC_VERCEL_PROJECT_NAME ?? VERCEL_PROJECT_NAME ?? 'martech-pulse'
+const service = VERCEL_PROJECT_NAME ?? 'my-service'
 const sha = NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? VERCEL_GIT_COMMIT_SHA
 const version = sha ? sha.slice(0, 7) : 'local'
 const site = NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com'

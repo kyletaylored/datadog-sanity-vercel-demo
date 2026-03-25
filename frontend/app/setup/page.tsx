@@ -423,7 +423,7 @@ export default function RootLayout({ children }) {
 
 export function register() {
   registerOTel({
-    serviceName: process.env.NEXT_PUBLIC_VERCEL_PROJECT_NAME ?? 'my-service',
+    serviceName: process.env.VERCEL_PROJECT_NAME ?? 'my-service',
     attributes: {
       'deployment.environment': process.env.VERCEL_ENV ?? 'development',
       'service.version': process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local',
@@ -557,11 +557,6 @@ await exec(\`npx @datadog/datadog-ci sourcemaps upload .next/server
                   'DATADOG_API_KEY',
                   'Yes (sourcemaps)',
                   'Server-only. Used by postbuild sourcemap upload script.',
-                ],
-                [
-                  'NEXT_PUBLIC_VERCEL_PROJECT_NAME',
-                  'Recommended',
-                  "Set manually — NEXT_PUBLIC_ makes it available at build time. Vercel's built-in VERCEL_PROJECT_NAME is server-only at runtime.",
                 ],
                 [
                   'OTEL_EXPORTER_OTLP_ENDPOINT',

@@ -26,13 +26,13 @@ const nextConfig: NextConfig = {
     // BannerPlugin below is belt-and-suspenders for webpack builds.
     ...(gitRepoUrl ? {DD_GIT_REPOSITORY_URL: gitRepoUrl} : {}),
     ...(commitSha ? {DD_GIT_COMMIT_SHA: commitSha} : {}),
-    // Forward Vercel system vars into the client bundle.
+    // Bake Vercel system vars into the client bundle at build time.
     // VERCEL_PROJECT_NAME and VERCEL_ENV are server-only at runtime but are
-    // available during the Vercel build. Baking them here means config.ts can
-    // read NEXT_PUBLIC_VERCEL_PROJECT_NAME and NEXT_PUBLIC_VERCEL_ENV in both
-    // server and browser contexts without requiring manual env var setup.
+    // available during the Vercel build. The next.config `env` block inlines
+    // values into both server and client bundles, so no NEXT_PUBLIC_ prefix is
+    // needed — client code can read process.env.VERCEL_PROJECT_NAME directly.
     ...(process.env.VERCEL_PROJECT_NAME
-      ? {NEXT_PUBLIC_VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME}
+      ? {VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME}
       : {}),
     ...(process.env.VERCEL_ENV ? {NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV} : {}),
   },
