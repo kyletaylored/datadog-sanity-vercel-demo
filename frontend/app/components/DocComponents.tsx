@@ -114,7 +114,7 @@ export function DocStep({n, children}: {n: number; children: React.ReactNode}) {
       <div className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
         {n}
       </div>
-      <div className="text-sm text-gray-700 leading-relaxed flex-1">{children}</div>
+      <div className="text-sm text-gray-700 leading-relaxed flex-1 min-w-0">{children}</div>
     </div>
   )
 }
