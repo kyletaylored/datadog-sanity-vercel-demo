@@ -4,6 +4,7 @@ import Link from 'next/link'
 import {usePathname} from 'next/navigation'
 import {useState} from 'react'
 import {BRAND} from '@/lib/brand'
+import UserMenu from '@/app/components/UserMenu'
 
 export default function Header() {
   const pathname = usePathname()
@@ -21,7 +22,8 @@ export default function Header() {
             </span>
           </Link>
 
-          <nav>
+          <div className="flex items-center gap-4">
+            <nav>
             <ul
               role="list"
               className="flex items-center gap-4 md:gap-6 leading-5 text-xs sm:text-base tracking-tight font-mono"
@@ -95,7 +97,9 @@ export default function Header() {
                 )
               })}
             </ul>
-          </nav>
+            </nav>
+            <UserMenu />
+          </div>
         </div>
       </div>
     </header>
