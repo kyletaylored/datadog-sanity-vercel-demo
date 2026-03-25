@@ -1,18 +1,49 @@
 import Link from 'next/link'
-import DocSidebar, {DocSidebarItem} from '@/app/components/DocSidebar'
+import DocSidebar, { DocSidebarItem } from '@/app/components/DocSidebar'
 import {
   DocH2,
   DocH3,
+  DocH4,
   DocCode,
   DocPre,
   DocNote,
   DocEnvTable,
   DocStep,
 } from '@/app/components/DocComponents'
+import MermaidDiagram from '@/app/components/MermaidDiagram'
+import Collapsible from '@/app/components/Collapsible'
+
+const SIGNAL_FLOW_DIAGRAM = `
+flowchart LR
+  subgraph browser["Browser"]
+    RUM["RUM + Browser Logs SDK"]
+  end
+
+  subgraph vercel["Vercel — Serverless Functions"]
+    App["Next.js App"]
+    OTel["@vercel/otel\\nOTel spans"]
+    CLogs["console.log()\\nJSON logs"]
+    Sidecar["OTel Sidecar\\nlocalhost:4318\\n(Path A only)"]
+  end
+
+  subgraph dd["Datadog"]
+    DD_RUM["RUM /\\nSession Replay"]
+    DD_APM["APM /\\nTraces"]
+    DD_Logs["Log\\nManagement"]
+  end
+
+  RUM -->|"HTTPS direct"| DD_RUM
+  App --> OTel & CLogs
+  OTel -->|"Path A"| Sidecar --> DD_APM
+  OTel -->|"Path B · C\\ndirect OTLP"| DD_APM
+  CLogs -->|"Path A · B\\nlog drain"| DD_Logs
+  RUM -.->|"traceparent header\\nlinks session to trace"| DD_APM
+`
 
 // Aliases so the JSX in this file stays readable
 const H2 = DocH2
 const H3 = DocH3
+const H4 = DocH4
 const Code = DocCode
 const Pre = DocPre
 const Note = DocNote
@@ -22,22 +53,22 @@ const Step = DocStep
 // ─── Sidebar sections ────────────────────────────────────────────────────────
 
 const SECTIONS: DocSidebarItem[] = [
-  {id: 'overview', label: 'Overview'},
-  {id: 'prerequisites', label: 'Prerequisites'},
+  { id: 'overview', label: 'Overview' },
+  { id: 'prerequisites', label: 'Prerequisites' },
   {
     id: 'paths',
     label: 'Choose Your Path',
     children: [
-      {id: 'path-integration', label: 'A · Datadog Integration'},
-      {id: 'path-drain', label: 'B · Manual Drain'},
-      {id: 'path-direct', label: 'C · Direct OTLP'},
+      { id: 'path-integration', label: 'A · Datadog Integration' },
+      { id: 'path-drain', label: 'B · Manual Drain' },
+      { id: 'path-direct', label: 'C · Direct OTLP' },
     ],
   },
-  {id: 'rum', label: 'RUM'},
-  {id: 'apm', label: 'APM / Traces'},
-  {id: 'logs', label: 'Logs'},
-  {id: 'sourcemaps', label: 'Source Maps'},
-  {id: 'env-vars', label: 'Env Variables'},
+  { id: 'rum', label: 'RUM' },
+  { id: 'apm', label: 'APM / Traces' },
+  { id: 'logs', label: 'Logs' },
+  { id: 'sourcemaps', label: 'Source Maps' },
+  { id: 'env-vars', label: 'Env Variables' },
 ]
 
 // ─── Page ────────────────────────────────────────────────────────────────────
@@ -98,7 +129,7 @@ export default function SetupPage() {
                   signal: 'Logs',
                   desc: 'Structured JSON server logs correlated to traces',
                 },
-              ].map(({signal, desc}) => (
+              ].map(({ signal, desc }) => (
                 <div
                   key={signal}
                   className="rounded-lg border border-gray-200 p-4 bg-gray-50"
@@ -111,6 +142,12 @@ export default function SetupPage() {
             <p className="text-xs text-gray-400 mt-4">
               Also covered: source maps (browser + server) and Error Tracking span attributes.
             </p>
+            <Collapsible summary="Signal flow diagram" defaultOpen={true}>
+              <MermaidDiagram
+                chart={SIGNAL_FLOW_DIAGRAM}
+                caption="How APM, RUM, and Logs reach Datadog across the three delivery paths"
+              />
+            </Collapsible>
 
             {/* ── Prerequisites ─────────────────────────────────────── */}
             <H2 id="prerequisites">Prerequisites</H2>
@@ -187,7 +224,7 @@ export default function SetupPage() {
                   ],
                   cons: ['No auto log drain', 'Log forwarding is manual'],
                 },
-              ].map(({anchor, letter, title, badge, badgeColor, plan, pros, cons}) => (
+              ].map(({ anchor, letter, title, badge, badgeColor, plan, pros, cons }) => (
                 <div
                   key={anchor}
                   className="rounded-xl border border-gray-200 p-5 flex flex-col hover:shadow-sm transition-shadow"
@@ -297,7 +334,7 @@ export default function SetupPage() {
               <Step n={3}>
                 Set env vars so <Code>@vercel/otel</Code> sends directly to Datadog instead of a
                 sidecar:
-                <Pre>{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com/v1/traces
+                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com/v1/traces
 OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
               </Step>
               <Step n={4}>
@@ -322,7 +359,7 @@ OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
             <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
               <Step n={1}>
                 Set env vars — <Code>@vercel/otel</Code> reads these automatically:
-                <Pre>{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com/v1/traces
+                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com/v1/traces
 OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
                 Adjust the hostname for your Datadog site (e.g.{' '}
                 <Code>otlp.us3.datadoghq.com</Code> for US3).
@@ -337,27 +374,52 @@ OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
               <Step n={3}>Add RUM — see the <a href="#rum" className="underline hover:text-black">RUM section</a>.</Step>
             </div>
             <Note variant="info">
-              <strong>Logs on Path C:</strong> Without a Vercel drain, console output won&apos;t
-              reach Datadog Logs automatically. Options: use the{' '}
-              <a
-                href="https://docs.datadoghq.com/logs/guide/forwarder/"
+              <strong>Logs on Path C:</strong> Vercel is a managed platform — direct AWS access
+              isn&apos;t available, so the Datadog Forwarder is not an option. Use one of the two
+              approaches below.
+            </Note>
+            <H4>Option 1 — OTLP logs</H4>
+            <p className="text-sm text-gray-600 mb-3">
+              Datadog provides a <a
+                href="https://docs.datadoghq.com/opentelemetry/setup/otlp_ingest/logs/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"
               >
-                Datadog Forwarder
-              </a>
-              , forward from a serverless function, or send directly via the{' '}
+                dedicated OTLP logs
+              </a> intake endpoint. Configure it with
+              logs-specific env vars (separate from the traces endpoint):
+            </p>
+            <Pre lang="bash">{`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=https://otlp.datadoghq.com/v1/logs
+OTEL_EXPORTER_OTLP_LOGS_HEADERS=dd-api-key=<your-dd-api-key>
+OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/protobuf`}</Pre>
+            <p className="text-sm text-gray-600 mb-3">
+              Then emit logs via <Code>@opentelemetry/api-logs</Code>:
+            </p>
+            <Pre lang="typescript">{`import { logs, SeverityNumber } from '@opentelemetry/api-logs'
+
+logs.getLogger('my-service').emit({
+  severityNumber: SeverityNumber.INFO,
+  severityText: 'INFO',
+  body: 'user.signed_up',
+  attributes: { 'user.id': '123', 'plan': 'pro' },
+})`}</Pre>
+            <H4>Option 2 — Datadog Logs HTTP API</H4>
+            <p className="text-sm text-gray-600 mb-3">
+              POST directly to{' '}
+              <Code>https://http-intake.logs.datadoghq.com/api/v2/logs</Code> with a{' '}
+              <Code>DD-API-KEY</Code> header. Useful for sending logs from outside the OTel
+              instrumentation path (e.g. a background job or edge function). See the{' '}
               <a
                 href="https://docs.datadoghq.com/api/latest/logs/#send-logs"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline"
+                className="underline hover:text-black"
               >
-                Logs HTTP API
+                Logs HTTP API docs
               </a>
               .
-            </Note>
+            </p>
 
             {/* ── RUM ───────────────────────────────────────────────── */}
             <H2 id="rum">RUM</H2>
@@ -365,8 +427,8 @@ OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
               Create a client component and render it once in your root layout. It initializes both
               RUM and Browser Logs.
             </p>
-            <Pre>{`npm install @datadog/browser-rum @datadog/browser-logs`}</Pre>
-            <Pre filename="app/components/datadog-init.tsx">{`'use client'
+            <Pre lang="bash">{`npm install @datadog/browser-rum @datadog/browser-logs`}</Pre>
+            <Pre filename="app/components/datadog-init.tsx" lang="tsx">{`'use client'
 import { datadogRum } from '@datadog/browser-rum'
 import { datadogLogs } from '@datadog/browser-logs'
 
@@ -375,14 +437,24 @@ datadogRum.init({
   clientToken:   process.env.NEXT_PUBLIC_DD_CLIENT_TOKEN!,
   site:          process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com',
   service:       'my-app-web',
-  env:           process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development',
+  env:           process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'local',
   version:       process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local',
   sessionSampleRate:       100,
   sessionReplaySampleRate: 100,
   trackResources:          true,
   trackUserInteractions:   true,
-  // Injects traceparent on same-origin fetch → connects browser session to server span
-  allowedTracingUrls: [(url) => url.includes(window.location.origin)],
+  // Injects traceparent header on matched requests → connects browser session to server span.
+  // Accepts strings (prefix match), RegExp, or predicate functions — mix as needed.
+  allowedTracingUrls: [
+    // Same-origin API calls (covers localhost, preview, and production automatically)
+    (url) => url.startsWith(window.location.origin),
+    // Example: explicit production domain
+    // 'https://my-app.vercel.app',
+    // Example: all subdomains via regex
+    // /https:\/\/.*\.my-domain\.com/,
+    // Example: specific API path prefix
+    // (url) => new URL(url).pathname.startsWith('/api/'),
+  ],
 })
 
 datadogLogs.init({
@@ -394,7 +466,7 @@ datadogLogs.init({
 })
 
 export default function DatadogInit() { return null }`}</Pre>
-            <Pre filename="app/layout.tsx (excerpt)">{`import DatadogInit from '@/app/components/datadog-init'
+            <Pre filename="app/layout.tsx (excerpt)" lang="tsx">{`import DatadogInit from '@/app/components/datadog-init'
 
 export default function RootLayout({ children }) {
   return (
@@ -418,14 +490,14 @@ export default function RootLayout({ children }) {
               The same file works for all three paths. The path selection determines which env vars
               you set — the code is identical.
             </p>
-            <Pre>{`npm install @vercel/otel @opentelemetry/api @opentelemetry/api-logs`}</Pre>
-            <Pre filename="instrumentation.ts  ← project root, not app/">{`import { registerOTel } from '@vercel/otel'
+            <Pre lang="bash">{`npm install @vercel/otel @opentelemetry/api @opentelemetry/api-logs`}</Pre>
+            <Pre filename="instrumentation.ts  ← project root, not app/" lang="typescript">{`import { registerOTel } from '@vercel/otel'
 
 export function register() {
   registerOTel({
     serviceName: process.env.VERCEL_PROJECT_NAME ?? 'my-service',
     attributes: {
-      'deployment.environment': process.env.VERCEL_ENV ?? 'development',
+      'deployment.environment': process.env.VERCEL_ENV ?? 'local',
       'service.version': process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local',
       'cloud.provider': 'vercel',
     },
@@ -433,7 +505,7 @@ export function register() {
 }`}</Pre>
             <Note>
               <strong>File placement matters.</strong> <Code>instrumentation.ts</Code> must live at
-              the project root next to <Code>package.json</Code>, not inside <Code>app/</Code>.
+              the Next.js project root next to <Code>package.json</Code>, not inside <Code>app/</Code>.
               Next.js only auto-calls <Code>register()</Code> from the root. Placing it in{' '}
               <Code>app/</Code> silently does nothing — all spans will be no-ops.
             </Note>
@@ -449,7 +521,7 @@ export function register() {
               For errors to appear in Datadog Error Tracking, the error span must be on a{' '}
               <Code>SpanKind.SERVER</Code> entry span and include all three attributes:
             </p>
-            <Pre>{`import { SpanStatusCode } from '@opentelemetry/api'
+            <Pre lang="typescript">{`import { SpanStatusCode } from '@opentelemetry/api'
 
 function recordSpanError(span: Span, err: Error) {
   span.recordException(err)
@@ -466,7 +538,7 @@ function recordSpanError(span: Span, err: Error) {
               Datadog Log Management correlates logs to traces via <Code>dd.trace_id</Code> and{' '}
               <Code>dd.span_id</Code> — both must be 64-bit decimal integers, not hex.
             </p>
-            <Pre filename="lib/logger.ts">{`import { trace } from '@opentelemetry/api'
+            <Pre filename="lib/logger.ts" lang="typescript">{`import { trace } from '@opentelemetry/api'
 
 // OTel trace IDs are 128-bit hex. Datadog wants the lower 64 bits as decimal.
 function hexToDecimal(hex: string): string {
@@ -502,7 +574,7 @@ export function log(
               Enables unminified stack traces in Datadog RUM and APM. Maps are uploaded at build
               time then deleted so they&apos;re never served publicly.
             </p>
-            <Pre filename="next.config.ts (excerpt)">{`const nextConfig: NextConfig = {
+            <Pre filename="next.config.ts (excerpt)" lang="typescript">{`const nextConfig: NextConfig = {
   // Required: generates browser .map files for upload
   productionBrowserSourceMaps: true,
 
@@ -515,9 +587,9 @@ export function log(
   // Required in Next.js 16+ when webpack config is present
   turbopack: {},
 }`}</Pre>
-            <Pre filename="package.json (scripts)">{`"build":     "next build",
+            <Pre filename="package.json (scripts)" lang="json">{`"build":     "next build",
 "postbuild": "node scripts/upload-sourcemaps.mjs"`}</Pre>
-            <Pre filename="scripts/upload-sourcemaps.mjs (excerpt)">{`// Browser maps
+            <Pre filename="scripts/upload-sourcemaps.mjs (excerpt)" lang="javascript">{`// Browser maps
 await exec(\`npx @datadog/datadog-ci sourcemaps upload .next/static
   --service=my-service-web
   --release-version=\${sha}

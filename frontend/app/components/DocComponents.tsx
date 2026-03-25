@@ -1,4 +1,5 @@
 import React from 'react'
+import CodeBlock from './CodeBlock'
 
 export function DocH2({id, children}: {id: string; children: React.ReactNode}) {
   return (
@@ -19,6 +20,14 @@ export function DocH3({id, children}: {id?: string; children: React.ReactNode}) 
   )
 }
 
+export function DocH4({id, children}: {id?: string; children: React.ReactNode}) {
+  return (
+    <h4 id={id} className="scroll-mt-32 text-sm font-semibold mt-5 mb-2 text-gray-700">
+      {children}
+    </h4>
+  )
+}
+
 export function DocCode({children}: {children: React.ReactNode}) {
   return (
     <code className="bg-gray-100 text-gray-800 rounded px-1.5 py-0.5 text-[0.8em] font-mono">
@@ -27,9 +36,20 @@ export function DocCode({children}: {children: React.ReactNode}) {
   )
 }
 
-export function DocPre({filename, children}: {filename?: string; children: React.ReactNode}) {
+export function DocPre({
+  filename,
+  lang,
+  children,
+}: {
+  filename?: string
+  lang?: string
+  children: React.ReactNode
+}) {
+  if (lang && typeof children === 'string') {
+    return <CodeBlock code={children} lang={lang} filename={filename} />
+  }
   return (
-    <div className="my-4 rounded-lg overflow-hidden border border-gray-800">
+    <div className="my-4 rounded-lg overflow-hidden border border-gray-800 bg-gray-950">
       {filename && (
         <div className="bg-gray-800 text-gray-400 text-xs font-mono px-4 py-2 border-b border-gray-700">
           {filename}

@@ -86,6 +86,11 @@ export default function LabPage() {
   const [debugStatus, setDebugStatus] = useState<Status>('idle')
   const [debugResult, setDebugResult] = useState<Record<string, unknown> | null>(null)
 
+  const [otlpLogMsg, setOtlpLogMsg] = useState('Hello from Signal Lab')
+  const [otlpLogLevel, setOtlpLogLevel] = useState<'info' | 'warn' | 'error'>('info')
+  const [otlpLogStatus, setOtlpLogStatus] = useState<Status>('idle')
+  const [otlpLogResult, setOtlpLogResult] = useState<Record<string, unknown> | null>(null)
+
   const otlpDirect = useLabAction('/api/lab/otel-direct')
 
   useEffect(() => {
@@ -181,6 +186,17 @@ export default function LabPage() {
     setAttrTraceId(r.traceId)
     setAttrResult(r.data)
     setAttrStatus(r.error ? 'error' : 'success')
+  }
+
+  const handleOtlpLog = async () => {
+    setOtlpLogStatus('loading')
+    const r = await labFetch<Record<string, unknown>>('/api/lab/otlp-logs', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: otlpLogMsg, level: otlpLogLevel}),
+    })
+    setOtlpLogResult(r.data)
+    setOtlpLogStatus(r.error ? 'error' : 'success')
   }
 
   const handleDebugEnv = async () => {
@@ -458,6 +474,28 @@ export default function LabPage() {
               <LabCard title="Direct OTLP Test" description="GET /api/lab/otel-direct — send a raw trace + log directly to the Vercel sidecar collector (localhost:4318) to verify what signals it accepts." status={otlpDirect.status}>
                 <button className={btnClass} onClick={() => otlpDirect.trigger()} disabled={otlpDirect.status === 'loading'}>Send</button>
                 {otlpDirect.result && <ResultDisplay data={otlpDirect.result} traceId={otlpDirect.traceId} />}
+              </LabCard>
+
+              <LabCard title="OTLP Logs Direct" description="POST /api/lab/otlp-logs — send a log directly to Datadog's OTLP logs endpoint, bypassing the Vercel drain. Requires DATADOG_API_KEY." status={otlpLogStatus}>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    value={otlpLogMsg}
+                    onChange={(e) => setOtlpLogMsg(e.target.value)}
+                    placeholder="Log message..."
+                    className="flex-1 border rounded px-3 py-2 text-sm"
+                  />
+                  <select
+                    value={otlpLogLevel}
+                    onChange={(e) => setOtlpLogLevel(e.target.value as 'info' | 'warn' | 'error')}
+                    className="border rounded px-2 py-1 text-sm"
+                  >
+                    <option>info</option>
+                    <option>warn</option>
+                    <option>error</option>
+                  </select>
+                  <button className={btnClass} onClick={handleOtlpLog} disabled={otlpLogStatus === 'loading'}>Send</button>
+                </div>
+                {otlpLogResult && <ResultDisplay data={otlpLogResult} />}
               </LabCard>
             </LabSection></div>
 
