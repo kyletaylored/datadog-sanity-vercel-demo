@@ -1,5 +1,5 @@
-import {registerOTel} from '@vercel/otel'
-import {SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION} from '@/lib/config'
+import { registerOTel } from '@vercel/otel'
+import { SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION, GIT_REPO_URL } from '@/lib/config'
 
 export function register() {
   // Vercel runs an OTel sidecar collector at localhost:4318 when VERCEL_OTEL_ENDPOINTS is set.
@@ -12,6 +12,7 @@ export function register() {
       'deployment.environment': DEPLOY_ENV,
       'service.version': SERVICE_VERSION,
       'deployment.region': DEPLOY_REGION,
+      'git.repository_url': GIT_REPO_URL,
     },
   })
 }

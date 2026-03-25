@@ -7,7 +7,7 @@
     "build": "next build",
     "postbuild": "node scripts/upload-sourcemaps.mjs",
     "predev": "npm run sanity:typegen",
-    "dev": "next dev",
+    "dev": "next dev --inspect",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "sanity:typegen": "cd ../studio && sanity schema extract --enforce-required-fields --path ../sanity.schema.json && cd ../frontend && sanity typegen generate",

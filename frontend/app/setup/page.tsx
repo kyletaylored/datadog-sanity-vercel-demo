@@ -326,16 +326,16 @@ export default function SetupPage() {
                 <Code>DD_SITE</Code>).
               </Step>
               <Step n={2}>
-                Add headers: <Code>dd-api-key: &lt;your-key&gt;</Code> and optionally{' '}
-                <Code>dd-otlp-source: &lt;custom-name&gt;</Code>. The{' '}
-                <Code>dd-otlp-source</Code> value surfaces as <Code>otel.source</Code> on ingested
-                spans — useful for telling this drain apart from the integration drain.
+                Add headers: <Code>dd-api-key: &lt;your-key&gt;</Code> and{' '}
+                <Code>dd-otlp-source: &lt;your-value&gt;</Code> (required). The value is provided by your
+                Datadog account team and also surfaces as <Code>otel.source</Code> on ingested spans.
               </Step>
               <Step n={3}>
                 Set env vars so <Code>@vercel/otel</Code> sends directly to Datadog instead of a
                 sidecar:
-                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com/v1/traces
-OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
+                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com
+OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>,dd-otlp-source=<your-value>
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
               </Step>
               <Step n={4}>
                 Install packages and create <Code>instrumentation.ts</Code> — see the{' '}
@@ -359,9 +359,12 @@ OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
             <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
               <Step n={1}>
                 Set env vars — <Code>@vercel/otel</Code> reads these automatically:
-                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com/v1/traces
-OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
-                Adjust the hostname for your Datadog site (e.g.{' '}
+                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com
+OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>,dd-otlp-source=<your-value>
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
+                <strong>Note:</strong> <Code>dd-otlp-source</Code> is required — without it Datadog
+                accepts the request (202) but silently drops all spans. The value is provided by
+                your Datadog account team. Adjust the hostname for your Datadog site (e.g.{' '}
                 <Code>otlp.us3.datadoghq.com</Code> for US3).
               </Step>
               <Step n={2}>
@@ -391,7 +394,7 @@ OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>`}</Pre>
               logs-specific env vars (separate from the traces endpoint):
             </p>
             <Pre lang="bash">{`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=https://otlp.datadoghq.com/v1/logs
-OTEL_EXPORTER_OTLP_LOGS_HEADERS=dd-api-key=<your-dd-api-key>
+OTEL_EXPORTER_OTLP_LOGS_HEADERS=dd-api-key=<your-dd-api-key>,dd-otlp-source=<your-value>
 OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/protobuf`}</Pre>
             <p className="text-sm text-gray-600 mb-3">
               Then emit logs via <Code>@opentelemetry/api-logs</Code>:
@@ -641,7 +644,7 @@ await exec(\`npx @datadog/datadog-ci sourcemaps upload .next/server
                 [
                   'OTEL_EXPORTER_OTLP_HEADERS',
                   'Paths B & C',
-                  'e.g. dd-api-key=<key> — passed as HTTP headers on every OTLP request.',
+                  'e.g. dd-api-key=<key>,dd-otlp-source=<your-value> — passed as HTTP headers on every OTLP request. dd-otlp-source is required (value provided by your Datadog account team); without it Datadog silently drops spans.',
                 ],
                 [
                   'SANITY_API_WRITE_TOKEN',

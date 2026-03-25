@@ -31,3 +31,10 @@ export const SERVICE_VERSION =
   )?.slice(0, 7) ?? 'local'
 
 export const DEPLOY_REGION = process.env.VERCEL_REGION ?? 'unknown'
+
+// Repository URL for Datadog source code integration.
+// DD_GIT_REPOSITORY_URL is baked in at build time by next.config.ts from VERCEL_GIT_* vars.
+// Set GIT_REPO_URL in .env.local as a fallback for local dev.
+// https://docs.datadoghq.com/integrations/guide/source-code-integration/
+export const GIT_REPO_URL =
+  process.env.DD_GIT_REPOSITORY_URL || process.env.GIT_REPO_URL || undefined
