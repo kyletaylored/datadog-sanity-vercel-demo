@@ -33,6 +33,9 @@ function useLabAction<T = Record<string, unknown>>(route: string, options?: Requ
   return {status, result, traceId, error, trigger}
 }
 
+const SECTION_IDS = ['section-api', 'section-forms', 'section-search', 'section-proxy', 'section-logs', 'section-debug', 'section-errors']
+const btnClass = 'px-4 py-2 rounded-lg bg-black text-white text-sm hover:bg-gray-800 transition-colors disabled:opacity-50'
+
 export default function LabPage() {
   const health = useLabAction('/api/lab/health')
   const envInfo = useLabAction('/api/lab/env-info')
@@ -77,6 +80,7 @@ export default function LabPage() {
   const [attrTraceId, setAttrTraceId] = useState('')
 
   const [envData, setEnvData] = useState<Record<string, string> | null>(null)
+  const [activeSection, setActiveSection] = useState('')
 
   const [debugPassword, setDebugPassword] = useState('')
   const [debugStatus, setDebugStatus] = useState<Status>('idle')
@@ -88,6 +92,23 @@ export default function LabPage() {
     labFetch<Record<string, string>>('/api/lab/env-info').then((r) => {
       if (r.data) setEnvData(r.data)
     })
+  }, [])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const intersecting = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (intersecting.length > 0) setActiveSection(intersecting[0].target.id)
+      },
+      {rootMargin: '-104px 0px -40% 0px', threshold: 0},
+    )
+    SECTION_IDS.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
+    })
+    return () => observer.disconnect()
   }, [])
 
   const randomizeLead = () => {
@@ -181,8 +202,6 @@ export default function LabPage() {
     setChainStatus(r.error ? 'error' : 'success')
   }
 
-  const btnClass = 'px-4 py-2 rounded-lg bg-black text-white text-sm hover:bg-gray-800 transition-colors disabled:opacity-50'
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto max-w-7xl px-6 py-12">
@@ -217,7 +236,11 @@ export default function LabPage() {
                           e.preventDefault()
                           document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
                         }}
-                        className="block py-1 px-2 rounded hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        className={`block py-1 px-2 rounded transition-colors ${
+                          activeSection === id
+                            ? 'bg-gray-100 text-gray-900 font-medium'
+                            : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500'
+                        }`}
                       >
                         {label}
                       </a>
@@ -416,17 +439,19 @@ export default function LabPage() {
             {/* Debug */}
             <div id="section-debug"><LabSection title="Debug" icon={Terminal}>
               <LabCard title="Environment Inspector" description="POST /api/lab/debug-env — requires DEBUG_SECRET passcode. Sensitive keys are redacted." status={debugStatus}>
-                <div className="flex gap-2 mb-3">
+                <form
+                  className="flex gap-2 mb-3"
+                  onSubmit={(e) => { e.preventDefault(); handleDebugEnv() }}
+                >
                   <input
                     type="password"
                     placeholder="Passcode"
                     value={debugPassword}
                     onChange={(e) => setDebugPassword(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleDebugEnv()}
                     className="flex-1 border rounded px-3 py-2 text-sm font-mono"
                   />
-                  <button className={btnClass} onClick={handleDebugEnv} disabled={debugStatus === 'loading'}>Inspect</button>
-                </div>
+                  <button type="submit" className={btnClass} disabled={debugStatus === 'loading'}>Inspect</button>
+                </form>
                 {debugResult && <ResultDisplay data={debugResult} />}
               </LabCard>
 

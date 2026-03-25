@@ -7,9 +7,9 @@
  * `env` block, so the values below resolve correctly in both server and
  * browser contexts without any manual env var setup.
  *
- * Env: use the raw Vercel value ("production" / "preview" / "development").
- * Do not shorten — Vercel's drain and sidecar emit "production" directly, and
- * mapping to "prod" creates a mismatch in Datadog between RUM and APM/Logs.
+ * Env: Vercel values are "production" / "preview" / "development". Falls back
+ * to "local" when not on Vercel. Do not shorten — Vercel's drain and sidecar
+ * emit "production" directly; mapping to "prod" creates a mismatch in Datadog.
  */
 
 // VERCEL_PROJECT_NAME is a Vercel system var available at build time.
@@ -19,8 +19,10 @@ export const SERVICE_NAME = process.env.VERCEL_PROJECT_NAME ?? 'my-service'
 
 // NEXT_PUBLIC_VERCEL_ENV is baked by next.config.ts from VERCEL_ENV at build
 // time so it is available in both server and client (browser) contexts.
+// Vercel values: "production" | "preview" | "development". Falls back to
+// "local" when not running on Vercel (i.e. local dev without Vercel CLI).
 export const DEPLOY_ENV =
-  process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV ?? 'development'
+  process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV ?? 'local'
 
 export const SERVICE_VERSION =
   (

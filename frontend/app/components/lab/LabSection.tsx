@@ -31,7 +31,7 @@ export default function LabSection({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {open && <div className="p-6 space-y-4">{children}</div>}
+      {open && <div className="p-6 space-y-4 bg-white">{children}</div>}
     </div>
   )
 }
