@@ -18,7 +18,7 @@
     "import": "sanity dataset import martech-pulse-sample-data/data.ndjson production --missing"
   },
   "dependencies": {
-    "@sanity/assist": "^5.0.2",
+    "@sanity/assist": "^5.0.4",
     "@sanity/icons": "^3.7.4",
     "@sanity/vision": "^5.18.0",
     "date-fns": "^4.1.0",
