@@ -19,6 +19,15 @@ datadogRum.init({
     trackLongTasks: true,
     allowedTracingUrls: [(url) => url.includes(window.location.origin)],
     defaultPrivacyLevel: 'mask-user-input',
+    beforeSend: (event) => {
+        if (event.type === 'resource' && (event.resource.status_code ?? 0) >= 500) {
+            datadogRum.addError(
+                new Error(`HTTP ${event.resource.status_code}: ${event.resource.url}`),
+                {url: event.resource.url, status: event.resource.status_code},
+            )
+        }
+        return true
+    },
 })
 
 datadogRum.setGlobalContextProperty('app.projectName', SERVICE_NAME)
