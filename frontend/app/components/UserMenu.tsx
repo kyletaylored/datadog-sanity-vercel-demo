@@ -73,7 +73,7 @@ export default function UserMenu() {
     await fetch('/api/auth/logout', {method: 'POST'})
     localStorage.removeItem(STORAGE_KEY)
     setUser(null)
-    datadogRum.removeUser()
+    datadogRum.setUser({})
     setOpen(false)
   }
 
