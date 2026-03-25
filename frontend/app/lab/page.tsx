@@ -1,11 +1,11 @@
 'use client'
 
-import {useState, useEffect} from 'react'
-import {Activity, Search, AlertTriangle, FileText, Globe, Terminal} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Activity, Search, AlertTriangle, FileText, Globe, Terminal } from 'lucide-react'
 import LabSection from '@/app/components/lab/LabSection'
 import LabCard from '@/app/components/lab/LabCard'
 import ResultDisplay from '@/app/components/lab/ResultDisplay'
-import {labFetch} from '@/app/lab/useLab'
+import { labFetch } from '@/app/lab/useLab'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
@@ -30,7 +30,7 @@ function useLabAction<T = Record<string, unknown>>(route: string, options?: Requ
     }
   }
 
-  return {status, result, traceId, error, trigger}
+  return { status, result, traceId, error, trigger }
 }
 
 const SECTION_IDS = ['section-api', 'section-forms', 'section-search', 'section-proxy', 'section-logs', 'section-debug', 'section-errors']
@@ -50,7 +50,7 @@ export default function LabPage() {
   const [chainStatus, setChainStatus] = useState<Status>('idle')
   const [chainTraceId, setChainTraceId] = useState('')
 
-  const [leadForm, setLeadForm] = useState({name: '', email: '', company: '', interestedIn: ''})
+  const [leadForm, setLeadForm] = useState({ name: '', email: '', company: '', interestedIn: '' })
   const [leadStatus, setLeadStatus] = useState<Status>('idle')
   const [leadResult, setLeadResult] = useState<Record<string, unknown> | null>(null)
   const [leadTraceId, setLeadTraceId] = useState('')
@@ -107,7 +107,7 @@ export default function LabPage() {
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
         if (intersecting.length > 0) setActiveSection(intersecting[0].target.id)
       },
-      {rootMargin: '-104px 0px -40% 0px', threshold: 0},
+      { rootMargin: '-104px 0px -40% 0px', threshold: 0 },
     )
     SECTION_IDS.forEach((id) => {
       const el = document.getElementById(id)
@@ -136,7 +136,7 @@ export default function LabPage() {
     setLeadStatus('loading')
     const r = await labFetch<Record<string, unknown>>('/api/lab/lead-capture', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(leadForm),
     })
     setLeadTraceId(r.traceId)
@@ -156,8 +156,8 @@ export default function LabPage() {
     setProxyStatus('loading')
     const r = await labFetch<Record<string, unknown>>('/api/lab/proxy', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({url: proxyUrl, injectLatency: proxyInjectLatency, forceError: proxyForceError}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: proxyUrl, injectLatency: proxyInjectLatency, forceError: proxyForceError }),
     })
     setProxyTraceId(r.traceId)
     setProxyResult(r.data)
@@ -168,8 +168,8 @@ export default function LabPage() {
     setBurstStatus('loading')
     const r = await labFetch<Record<string, unknown>>('/api/lab/log-burst', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({count: parseInt(burstCount), level: burstLevel}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ count: parseInt(burstCount), level: burstLevel }),
     })
     setBurstTraceId(r.traceId)
     setBurstResult(r.data)
@@ -180,8 +180,8 @@ export default function LabPage() {
     setAttrStatus('loading')
     const r = await labFetch<Record<string, unknown>>('/api/lab/custom-attribute', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({key: attrKey, value: attrValue}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: attrKey, value: attrValue }),
     })
     setAttrTraceId(r.traceId)
     setAttrResult(r.data)
@@ -192,8 +192,8 @@ export default function LabPage() {
     setOtlpLogStatus('loading')
     const r = await labFetch<Record<string, unknown>>('/api/lab/otlp-logs', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({message: otlpLogMsg, level: otlpLogLevel}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: otlpLogMsg, level: otlpLogLevel }),
     })
     setOtlpLogResult(r.data)
     setOtlpLogStatus(r.error ? 'error' : 'success')
@@ -203,8 +203,8 @@ export default function LabPage() {
     setDebugStatus('loading')
     const r = await labFetch<Record<string, unknown>>('/api/lab/debug-env', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({password: debugPassword}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: debugPassword }),
     })
     setDebugResult(r.data)
     setDebugStatus(r.error ? 'error' : 'success')
@@ -237,26 +237,25 @@ export default function LabPage() {
                 <h3 className="font-semibold text-sm text-gray-900 mb-3">Sections</h3>
                 <ul className="text-xs space-y-1 font-mono text-gray-600">
                   {[
-                    {id: 'section-api', label: 'API Triggers'},
-                    {id: 'section-forms', label: 'Forms'},
-                    {id: 'section-search', label: 'Campaign Search'},
-                    {id: 'section-proxy', label: 'Proxy'},
-                    {id: 'section-logs', label: 'Log Emitter'},
-                    {id: 'section-debug', label: 'Debug'},
-                    {id: 'section-errors', label: 'Error Triggers'},
-                  ].map(({id, label}) => (
+                    { id: 'section-api', label: 'API Triggers' },
+                    { id: 'section-forms', label: 'Forms' },
+                    { id: 'section-search', label: 'Campaign Search' },
+                    { id: 'section-proxy', label: 'Proxy' },
+                    { id: 'section-logs', label: 'Log Emitter' },
+                    { id: 'section-debug', label: 'Debug' },
+                    { id: 'section-errors', label: 'Error Triggers' },
+                  ].map(({ id, label }) => (
                     <li key={id}>
                       <a
                         href={`#${id}`}
                         onClick={(e) => {
                           e.preventDefault()
-                          document.getElementById(id)?.scrollIntoView({behavior: 'smooth', block: 'start'})
+                          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                         }}
-                        className={`block py-1 px-2 rounded transition-colors ${
-                          activeSection === id
+                        className={`block py-1 px-2 rounded transition-colors ${activeSection === id
                             ? 'bg-gray-100 text-gray-900 font-medium'
                             : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500'
-                        }`}
+                          }`}
                       >
                         {label}
                       </a>
@@ -344,7 +343,7 @@ export default function LabPage() {
                       key={f}
                       placeholder={f}
                       value={leadForm[f]}
-                      onChange={(e) => setLeadForm((prev) => ({...prev, [f]: e.target.value}))}
+                      onChange={(e) => setLeadForm((prev) => ({ ...prev, [f]: e.target.value }))}
                       className="border rounded px-3 py-2 text-sm"
                     />
                   ))}
@@ -462,6 +461,7 @@ export default function LabPage() {
                   <input
                     type="password"
                     placeholder="Passcode"
+                    autoComplete="on"
                     value={debugPassword}
                     onChange={(e) => setDebugPassword(e.target.value)}
                     className="flex-1 border rounded px-3 py-2 text-sm font-mono"
