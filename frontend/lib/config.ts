@@ -38,6 +38,18 @@ export const CLOUD_REGION = process.env.AWS_REGION ?? process.env.VERCEL_REGION 
 // Unique ID for this deployment — useful for correlating metrics with a specific deploy.
 export const DEPLOYMENT_ID = process.env.VERCEL_DEPLOYMENT_ID ?? undefined
 
+// Stable host identifier for OTel host.name.
+// VERCEL_PROJECT_PRODUCTION_URL is the canonical URL of this production deployment (e.g. "myapp.vercel.app" for
+// production, or a preview URL). More useful than a region name because it's
+// human-readable and distinct between production and preview environments.
+// Falls back to the project name + region, then localhost for local dev.
+export const HOST_NAME =
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL ??
+  (process.env.VERCEL_PROJECT_NAME && process.env.VERCEL_REGION
+    ? `${process.env.VERCEL_PROJECT_NAME}.${process.env.VERCEL_REGION}`
+    : undefined) ??
+  'localhost'
+
 // Repository URL for Datadog source code integration.
 // DD_GIT_REPOSITORY_URL is baked in at build time by next.config.ts from VERCEL_GIT_* vars.
 // Set GIT_REPO_URL in .env.local as a fallback for local dev.
