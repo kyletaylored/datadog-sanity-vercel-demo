@@ -1,5 +1,5 @@
 import {NextResponse} from 'next/server'
-import {SERVICE_NAME, DEPLOY_ENV} from '@/lib/config'
+import {SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION, HOST_NAME, GIT_REPO_URL} from '@/lib/config'
 
 function randomHex(bytes: number): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(bytes)))
@@ -33,6 +33,10 @@ function buildResourceAttrs() {
   return [
     {key: 'service.name', value: {stringValue: SERVICE_NAME}},
     {key: 'deployment.environment', value: {stringValue: DEPLOY_ENV}},
+    {key: 'service.version', value: {stringValue: SERVICE_VERSION}},
+    {key: 'deployment.region', value: {stringValue: DEPLOY_REGION}},
+    {key: 'host.name', value: {stringValue: HOST_NAME}},
+    ...(GIT_REPO_URL ? [{key: 'git.repository_url', value: {stringValue: GIT_REPO_URL}}] : []),
     {key: 'lab.direct_test', value: {boolValue: true}},
   ]
 }
@@ -88,6 +92,8 @@ function buildLogPayload(traceId: string, spanId: string, startNano: string) {
                 attributes: [
                   {key: 'lab.source', value: {stringValue: 'signal-lab'}},
                   {key: 'event', value: {stringValue: 'lab.direct_otlp_log'}},
+                  {key: 'trace_id', value: {stringValue: traceId}},
+                  {key: 'span_id', value: {stringValue: spanId}},
                 ],
               },
             ],

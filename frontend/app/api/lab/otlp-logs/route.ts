@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server'
 import type {NextRequest} from 'next/server'
-import {SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION} from '@/lib/config'
+import {trace} from '@opentelemetry/api'
+import {SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION, HOST_NAME, GIT_REPO_URL} from '@/lib/config'
 
 function nowNano(): string {
   return String(BigInt(Date.now()) * 1_000_000n)
@@ -26,14 +27,21 @@ export async function POST(request: NextRequest) {
   const now = nowNano()
   const endpoint = `https://otlp.${ddSite}/v1/logs`
 
+  const spanContext = trace.getActiveSpan()?.spanContext()
+  const traceId = spanContext?.traceId ?? ''
+  const spanId = spanContext?.spanId ?? ''
+
   const payload = {
     resourceLogs: [
       {
         resource: {
           attributes: [
             {key: 'service.name', value: {stringValue: SERVICE_NAME}},
-            {key: 'service.version', value: {stringValue: SERVICE_VERSION}},
             {key: 'deployment.environment', value: {stringValue: DEPLOY_ENV}},
+            {key: 'service.version', value: {stringValue: SERVICE_VERSION}},
+            {key: 'deployment.region', value: {stringValue: DEPLOY_REGION}},
+            {key: 'host.name', value: {stringValue: HOST_NAME}},
+            ...(GIT_REPO_URL ? [{key: 'git.repository_url', value: {stringValue: GIT_REPO_URL}}] : []),
           ],
         },
         scopeLogs: [
@@ -46,10 +54,15 @@ export async function POST(request: NextRequest) {
                 severityNumber: severityMap[level],
                 severityText: level.toUpperCase(),
                 body: {stringValue: message},
+                ...(traceId ? {traceId, spanId} : {}),
                 attributes: [
                   {key: 'lab.source', value: {stringValue: 'signal-lab'}},
                   {key: 'event', value: {stringValue: 'lab.otlp_log'}},
                   {key: 'lab.delivery_path', value: {stringValue: 'direct-otlp'}},
+                  ...(traceId ? [
+                    {key: 'trace_id', value: {stringValue: traceId}},
+                    {key: 'span_id', value: {stringValue: spanId}},
+                  ] : []),
                 ],
               },
             ],
