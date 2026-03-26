@@ -23,7 +23,12 @@ flowchart LR
     App["Next.js App"]
     OTel["@vercel/otel\\nOTel spans"]
     CLogs["console.log()\\nJSON logs"]
-    Sidecar["OTel Sidecar\\nlocalhost:4318\\n(Path A only)"]
+    Sidecar["OTel Sidecar\\nlocalhost:4318"]
+  end
+
+  subgraph drains["Vercel Trace Drains"]
+    D1["Datadog\\n(Path A · B)"]
+    D2["Other integrations\\n(Sentry, etc.)"]
   end
 
   subgraph dd["Datadog"]
@@ -34,8 +39,10 @@ flowchart LR
 
   RUM -->|"HTTPS direct"| DD_RUM
   App --> OTel & CLogs
-  OTel -->|"Path A"| Sidecar --> DD_APM
-  OTel -->|"Path B · C\\ndirect OTLP"| DD_APM
+  OTel -->|"default"| Sidecar
+  Sidecar -->|"Vercel routes to\\nall configured drains"| D1 & D2
+  D1 --> DD_APM
+  OTel -->|"Path C\\ndirect OTLP"| DD_APM
   CLogs -->|"Path A · B\\nlog drain"| DD_Logs
   RUM -.->|"traceparent header\\nlinks session to trace"| DD_APM
 `
@@ -145,7 +152,7 @@ export default function SetupPage() {
             <Collapsible summary="Signal flow diagram" defaultOpen={true}>
               <MermaidDiagram
                 chart={SIGNAL_FLOW_DIAGRAM}
-                caption="How APM, RUM, and Logs reach Datadog across the three delivery paths"
+                caption="Vercel's OTel sidecar routes spans to all configured trace drains. Path C bypasses the sidecar entirely via OTEL_EXPORTER_OTLP_ENDPOINT."
               />
             </Collapsible>
 
@@ -190,11 +197,11 @@ export default function SetupPage() {
                   plan: 'Vercel Pro / Enterprise',
                   pros: [
                     'One-click marketplace install',
-                    'Trace pipe auto-configured',
+                    'Enable Traces (beta) in integration settings',
                     'Log drain included',
-                    'Edge + serverless parent spans',
+                    'VERCEL_OTEL_ENDPOINTS injected automatically',
                   ],
-                  cons: ['Vercel egress fees on trace data'],
+                  cons: ['Traces (beta) must be explicitly enabled', 'Vercel egress fees'],
                 },
                 {
                   anchor: 'path-drain',
@@ -204,11 +211,11 @@ export default function SetupPage() {
                   badgeColor: 'bg-blue-100 text-blue-800',
                   plan: 'Vercel Pro / Enterprise',
                   pros: [
-                    'Custom drain headers',
-                    'Tag drain source with dd-otlp-source',
-                    'Use your own log receiver',
+                    'No env vars needed for trace routing',
+                    'Custom drain headers (dd-otlp-source)',
+                    'Works alongside other integrations',
                   ],
-                  cons: ['Manual drain setup', 'Vercel egress fees on trace data'],
+                  cons: ['Manual drain setup', 'Vercel egress fees'],
                 },
                 {
                   anchor: 'path-direct',
@@ -279,8 +286,9 @@ export default function SetupPage() {
                   Datadog integration
                 </a>{' '}
                 from the Vercel Marketplace. Follow the OAuth flow to connect your Datadog account.
-                This auto-injects <Code>VERCEL_OTEL_ENDPOINTS</Code> at runtime, spins up a local
-                OTel sidecar at <Code>localhost:4318</Code>, and creates a log drain.
+                In the integration settings, enable <strong>Traces (beta)</strong> — this is what
+                configures Vercel to route spans from the local OTel sidecar to Datadog and injects
+                <Code>VERCEL_OTEL_ENDPOINTS</Code> at runtime. Also enable the log drain.
               </Step>
               <Step n={2}>
                 Install packages and create <Code>instrumentation.ts</Code> — see the{' '}
@@ -300,37 +308,41 @@ export default function SetupPage() {
                 Deploy. Traces flow automatically via the sidecar. Logs flow via the drain.
               </Step>
             </div>
-            <Note>
-              The sidecar at <Code>localhost:4318</Code> only forwards <Code>/v1/traces</Code>.
-              Sending logs via OTLP to the sidecar returns 503 — logs reach Datadog exclusively
-              via the console → drain path.
+            <Note variant="info">
+              <strong>How Vercel routes spans:</strong> Vercel runs an OTel sidecar at{' '}
+              <Code>localhost:4318</Code> inside every serverless function. <Code>@vercel/otel</Code>{' '}
+              sends spans there by default. Vercel&apos;s platform then forwards those spans to{' '}
+              <em>all</em> configured trace drains — including native integrations (Datadog, Sentry,
+              etc.) without requiring users to set any new environment variables. The sidecar only handles{' '}
+              <Code>/v1/traces</Code>. Logs are a separate concern: Vercel captures them natively at
+              the platform level, and the Datadog integration lets you choose which log types to
+              forward (runtime, build, firewall, etc.) from within the integration settings.
             </Note>
 
             {/* ── Path B ────────────────────────────────────────────── */}
             <H3 id="path-drain">Path B — Manual Vercel Drain</H3>
             <p className="text-sm text-gray-600 mb-4">
-              Use when you want explicit control over drain headers — for example, to set a custom{' '}
-              <Code>dd-otlp-source</Code> value so you can distinguish this drain from the
-              integration drain in Datadog.
+              Use when you want explicit control over drain headers without installing a native
+              integration — for example, to set a custom <Code>dd-otlp-source</Code> value or send
+              to a non-standard Datadog site. No <Code>OTEL_EXPORTER_OTLP_*</Code> env vars needed;
+              Vercel routes sidecar spans to the drain automatically.
             </p>
             <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
               <Step n={1}>
                 In Vercel Dashboard, go to <strong>Project → Settings → Drains → Add Drain</strong>.
-                Use the <strong>Traces</strong> type, give it a name (i.e., {' '}<Code>Datadog OTLP Traces</Code>), set the URL destination to{' '}
+                Use the <strong>Traces</strong> type, give it a name (e.g.{' '}
+                <Code>Datadog OTLP Traces</Code>), and set the URL destination to{' '}
                 <Code>https://otlp.datadoghq.com/v1/traces</Code> (adjust for your{' '}
                 <Code>DD_SITE</Code>).
               </Step>
               <Step n={2}>
-                Add headers: <Code>dd-api-key: &lt;your-key&gt;</Code> and{' '}
-                <Code>dd-otlp-source: &lt;your-value&gt;</Code> (required). The value is provided by your
-                Datadog account team and also surfaces as <Code>otel.source</Code> on ingested spans.
+                Add drain headers: <Code>dd-api-key: &lt;your-key&gt;</Code> and{' '}
+                <Code>dd-otlp-source: &lt;your-value&gt;</Code> (required — without it, Datadog
+                silently drops ingested spans). The value is provided by your Datadog account team.
               </Step>
               <Step n={3}>
-                Set env vars so <Code>@vercel/otel</Code> sends directly to Datadog instead of a
-                sidecar:
-                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com
-OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>,dd-otlp-source=<your-value>
-OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
+                Optionally add a second drain of type <strong>Logs</strong> pointing to your log
+                receiver so server <Code>console.log()</Code> output reaches Datadog Log Management.
               </Step>
               <Step n={4}>
                 Install packages and create <Code>instrumentation.ts</Code> — see the{' '}
@@ -348,8 +360,9 @@ OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
             {/* ── Path C ────────────────────────────────────────────── */}
             <H3 id="path-direct">Path C — Direct OTLP</H3>
             <p className="text-sm text-gray-600 mb-4">
-              No drain, no sidecar. Your serverless functions send traces directly to
-              Datadog&apos;s OTLP intake. Works on Hobby plan.
+              No drain required. Setting <Code>OTEL_EXPORTER_OTLP_ENDPOINT</Code> causes{' '}
+              <Code>@vercel/otel</Code> to bypass the sidecar entirely and send spans directly to
+              Datadog&apos;s OTLP intake. Works on any Vercel plan including Hobby.
             </p>
             <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
               <Step n={1}>
