@@ -16,8 +16,19 @@ import {BRAND} from '@/lib/brand'
 import DatadogInit from '@/app/components/datadog-init'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
+  ),
   title: {default: BRAND.name, template: `%s | ${BRAND.name}`},
   description: BRAND.description,
+  openGraph: {
+    siteName: BRAND.name,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 }
 
 const inter = Inter({
@@ -40,7 +51,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
     <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} bg-white text-black`}>
       <body>
         <DatadogInit />
-        <section className="min-h-screen pt-24">
+        <section className="min-h-screen pt-16 sm:pt-20">
           <Toaster />
           {isDraftMode && (
             <>

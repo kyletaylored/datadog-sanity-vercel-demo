@@ -221,19 +221,51 @@ export default function LabPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto max-w-7xl px-6 py-12">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
         {/* Page Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold tracking-tight">⚡ Signal Lab</h1>
-          <p className="mt-2 text-gray-600 max-w-2xl">
+        <div className="mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">⚡ Signal Lab</h1>
+          <p className="mt-2 text-gray-600 max-w-2xl text-sm sm:text-base">
             Trigger real API calls, generate traces, emit logs, and produce errors — all wired to Datadog APM, RUM, and Logs via the Vercel log drain.
           </p>
         </div>
 
+        {/* Mobile section nav — horizontal scroll pill row */}
+        <div className="lg:hidden -mx-4 px-4 mb-6 overflow-x-auto">
+          <div className="flex gap-2 pb-1 min-w-max font-mono text-xs">
+            {[
+              { id: 'section-api', label: 'API Triggers' },
+              { id: 'section-forms', label: 'Forms' },
+              { id: 'section-search', label: 'Campaign Search' },
+              { id: 'section-proxy', label: 'Proxy' },
+              { id: 'section-logs', label: 'Log Emitter' },
+              { id: 'section-otlp', label: 'OTLP Direct' },
+              { id: 'section-debug', label: 'Debug' },
+              { id: 'section-errors', label: 'Error Triggers' },
+            ].map(({ id, label }) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-full border transition-colors ${
+                  activeSection === id
+                    ? 'bg-gray-900 text-white border-gray-900'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                }`}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <aside className="lg:col-span-1">
-            <div className="sticky top-28 space-y-4">
+          {/* Sidebar — desktop only */}
+          <aside className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-24 space-y-4">
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <h3 className="font-semibold text-sm text-gray-900 mb-3">Sections</h3>
                 <ul className="text-xs space-y-1 font-mono text-gray-600">

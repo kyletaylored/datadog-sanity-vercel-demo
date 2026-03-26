@@ -92,13 +92,27 @@ const SECTIONS: DocSidebarItem[] = [
 export const metadata = {
   title: 'Setup Guide — Next.js + Vercel + Datadog',
   description:
-    'Step-by-step guide for wiring APM, RUM, and Logs into Datadog from a Next.js app on Vercel.',
+    'Step-by-step guide for wiring APM traces, RUM, and structured logs into Datadog from a Next.js app on Vercel. Covers all three delivery paths, source maps, and OpenTelemetry configuration.',
+  openGraph: {
+    title: 'Next.js + Vercel + Datadog Setup Guide',
+    description:
+      'Full observability in one afternoon. Pick a delivery path (Datadog Integration, Manual Drain, or Direct OTLP), drop in the snippets, deploy.',
+    type: 'article',
+  },
+  twitter: {
+    title: 'Next.js + Vercel + Datadog Setup Guide',
+    description:
+      'Full observability in one afternoon. APM traces, RUM, structured logs, and source maps — step by step.',
+  },
+  alternates: {
+    canonical: '/setup',
+  },
 }
 
 export default function SetupPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto px-6 py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Breadcrumb */}
         <p className="mb-8 text-sm font-mono text-gray-400">
           <Link href="/" className="hover:underline">
@@ -110,7 +124,7 @@ export default function SetupPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-12 items-start">
           {/* Sidebar */}
-          <aside className="hidden lg:block self-start sticky top-28">
+          <aside className="hidden lg:block self-start sticky top-24">
             <DocSidebar sections={SECTIONS} />
           </aside>
 
