@@ -66,18 +66,9 @@ const ddEnv = {
 
 const gitFlag = repoUrl ? `--repository-url=${repoUrl} --commit-sha=${sha}` : '--disable-git'
 
-// Next.js 16 uses Turbopack by default. Turbopack bakes source paths as
-// "turbopack:///[project]/<repo-slug>/..." where [project] is the parent dir.
-// --project-path strips this prefix so Datadog can match sources to GitHub paths.
-// Falls back to undefined (flag omitted) for webpack builds or non-GitHub deploys.
-const projectPath = NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG
-  ? `turbopack:///[project]/${NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG}/`
-  : null
-
-console.log(`[sourcemaps] service=${service} version=${version} site=${site} repo=${repoUrl ?? '(disabled)'} project-path=${projectPath ?? '(omitted)'}`)
+console.log(`[sourcemaps] service=${service} version=${version} site=${site} repo=${repoUrl ?? '(disabled)'}`)
 
 const dryRunFlag = dryRun ? '--dry-run' : ''
-const projectPathFlag = projectPath ? `--project-path=${projectPath}` : ''
 let failed = false
 
 // --- Browser sourcemaps ---
@@ -89,7 +80,6 @@ try {
       `--service=${service}-web`,
       `--release-version=${version}`,
       '--minified-path-prefix=/_next/static',
-      projectPathFlag,
       gitFlag,
       dryRunFlag,
     ].filter(Boolean).join(' '),
@@ -126,7 +116,6 @@ if (existsSync('.next/server')) {
           `--service=${service}`,
           `--release-version=${version}`,
           '--minified-path-prefix=/var/task/frontend/.next/server',
-          projectPathFlag,
           gitFlag,
           dryRunFlag,
         ].filter(Boolean).join(' '),
