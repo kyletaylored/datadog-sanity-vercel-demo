@@ -18,6 +18,6 @@ export function register() {
     // (experimental) RuntimeNodeInstrumentation collects event loop, GC, heap, and CPU metrics.
     metricReaders: buildMetricReaders(),
     views: buildMetricViews(),
-    instrumentations: [new RuntimeNodeInstrumentation({ monitoringPrecision: 5000 })],
+    instrumentations: ['auto', new RuntimeNodeInstrumentation({ monitoringPrecision: 5000 })],
   })
 }

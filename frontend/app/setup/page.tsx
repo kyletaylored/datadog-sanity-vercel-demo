@@ -76,6 +76,15 @@ const SECTIONS: DocSidebarItem[] = [
   { id: 'logs', label: 'Logs' },
   { id: 'sourcemaps', label: 'Source Maps' },
   { id: 'env-vars', label: 'Env Variables' },
+  {
+    id: 'advanced',
+    label: 'Advanced Configuration',
+    children: [
+      { id: 'advanced-instrumentations', label: 'instrumentations' },
+      { id: 'advanced-log-processors', label: 'logRecordProcessors' },
+      { id: 'advanced-metric-readers', label: 'metricReaders' },
+    ],
+  },
 ]
 
 // ─── Page ────────────────────────────────────────────────────────────────────
@@ -660,6 +669,124 @@ await exec(\`npx @datadog/datadog-ci sourcemaps upload .next/server
                 ],
               ]}
             />
+
+            {/* ── Advanced Configuration ─────────────────────────────── */}
+            <H2 id="advanced">Advanced Configuration</H2>
+            <p className="text-sm text-gray-600 mb-6">
+              <Code>registerOTel</Code> accepts several optional properties beyond{' '}
+              <Code>serviceName</Code> and <Code>attributes</Code>. These are useful when you need
+              to push additional signals or hook in custom instrumentation libraries.
+            </p>
+
+            <H3 id="advanced-instrumentations">instrumentations</H3>
+            <p className="text-sm text-gray-600 mb-3">
+              Registers OpenTelemetry instrumentation libraries via{' '}
+              <Code>registerInstrumentations()</Code>. Accepts an array of{' '}
+              <Code>Instrumentation</Code> instances, or the strings{' '}
+              <Code>&quot;auto&quot;</Code> / <Code>&quot;fetch&quot;</Code>.
+            </p>
+            <p className="text-sm text-gray-600 mb-3">
+              When <Code>instrumentations</Code> is omitted, <Code>&quot;auto&quot;</Code> is
+              used by default, which enables <Code>FetchInstrumentation</Code>. If you supply
+              the array yourself, <Code>&quot;auto&quot;</Code> is <em>not</em> added
+              automatically — include it explicitly if you still want fetch tracing.
+            </p>
+            <Pre lang="typescript">{`import { registerOTel } from '@vercel/otel'
+import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node'
+
+export function register() {
+  registerOTel({
+    serviceName: 'my-service',
+    instrumentations: [
+      'auto',                              // keep default FetchInstrumentation
+      new RuntimeNodeInstrumentation(),    // add Node.js runtime metrics
+    ],
+  })
+}`}</Pre>
+            <Note variant="info">
+              Vercel sets <Code>NEXT_OTEL_FETCH_DISABLED=1</Code> at runtime, so{' '}
+              <Code>FetchInstrumentation</Code> / <Code>&quot;auto&quot;</Code> has no effect on
+              deployed functions — fetch propagation is controlled by the platform. It may still
+              be useful in local development.
+            </Note>
+
+            <H3 id="advanced-log-processors">logRecordProcessors</H3>
+            <p className="text-sm text-gray-600 mb-3">
+              Initializes OTel&apos;s logging pipeline. When processors are provided,{' '}
+              <Code>@vercel/otel</Code> creates a <Code>LoggerProvider</Code> and registers it
+              globally via <Code>logs.setGlobalLoggerProvider()</Code>. Without this, calls to{' '}
+              <Code>logs.getLogger(...).emit(...)</Code> from{' '}
+              <Code>@opentelemetry/api-logs</Code> are silent no-ops.
+            </p>
+            <p className="text-sm text-gray-600 mb-3">
+              Use this when you want to ship structured logs directly to Datadog&apos;s OTLP logs
+              intake rather than relying on a Vercel log drain (Path C, Option 1).
+            </p>
+            <Pre lang="typescript">{`import { registerOTel } from '@vercel/otel'
+import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
+
+export function register() {
+  registerOTel({
+    serviceName: 'my-service',
+    logRecordProcessors: [
+      new SimpleLogRecordProcessor(
+        new OTLPLogExporter({
+          url: 'https://otlp.datadoghq.com/v1/logs',
+          headers: {
+            'dd-api-key': process.env.DATADOG_API_KEY!,
+            'dd-otlp-source': process.env.DD_OTLP_SOURCE!,
+          },
+        }),
+      ),
+    ],
+  })
+}`}</Pre>
+            <Note>
+              <Code>SimpleLogRecordProcessor</Code> exports synchronously on each record —
+              suitable for serverless where the process exits after each request.{' '}
+              <Code>BatchLogRecordProcessor</Code> is more efficient for long-running servers but
+              risks dropping records on cold-start exits.
+            </Note>
+
+            <H3 id="advanced-metric-readers">metricReaders</H3>
+            <p className="text-sm text-gray-600 mb-3">
+              Attaches <Code>MetricReader</Code> instances to the SDK&apos;s{' '}
+              <Code>MeterProvider</Code>. Readers control how and when metric data is collected
+              and exported. Use this alongside <Code>instrumentations</Code> when collecting
+              Node.js runtime metrics (heap, CPU, GC, event loop).
+            </p>
+            <Pre lang="typescript">{`import { registerOTel } from '@vercel/otel'
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
+import { OTLPMetricExporter, AggregationTemporalityPreference } from '@opentelemetry/exporter-metrics-otlp-http'
+import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node'
+
+export function register() {
+  const metricReader = new PeriodicExportingMetricReader({
+    exporter: new OTLPMetricExporter({
+      url: 'https://otlp.datadoghq.com/v1/metrics',
+      headers: { 'dd-api-key': process.env.DATADOG_API_KEY! },
+      // Datadog rejects cumulative sums — delta required
+      temporalityPreference: AggregationTemporalityPreference.DELTA,
+    }),
+    exportIntervalMillis: 30_000,
+  })
+
+  registerOTel({
+    serviceName: 'my-service',
+    metricReaders: [metricReader],
+    instrumentations: [new RuntimeNodeInstrumentation()],
+    // Drop histograms — Datadog's OTLP intake rejects them
+    views: [{ aggregation: { type: AggregationType.DROP }, instrumentType: InstrumentType.HISTOGRAM }],
+  })
+}`}</Pre>
+            <Note variant="info">
+              <Code>PeriodicExportingMetricReader</Code> pushes on a fixed interval (30 s above).
+              On Vercel serverless functions, cold-start invocations may exit before the first
+              flush — metrics accumulate meaningfully only on warm, long-lived instances.
+              <Code>DATADOG_API_KEY</Code> must be set server-side; if absent, skip the reader
+              entirely to avoid errors.
+            </Note>
 
             {/* Footer */}
             <div className="mt-14 pt-6 border-t border-gray-100 text-xs text-gray-400 flex justify-between items-center">
