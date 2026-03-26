@@ -64,7 +64,7 @@ const ddEnv = {
   DATADOG_API_KEY,
 }
 
-const gitFlag = repoUrl ? `--repository-url=${repoUrl} --commit-sha=${sha}` : '--disable-git'
+const gitFlag = repoUrl ? `--repository-url=${repoUrl}` : '--disable-git'
 
 console.log(`[sourcemaps] service=${service} version=${version} site=${site} repo=${repoUrl ?? '(disabled)'}`)
 
