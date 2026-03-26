@@ -1,6 +1,6 @@
 'use client'
 
-import {rumAddAction, rumAddError} from '@/lib/rum'
+import { rumAddAction } from '@/lib/rum'
 
 export type LabResult<T> = {
   data: T | null
@@ -19,15 +19,15 @@ export async function labFetch<T>(
     const durationMs = Date.now() - start
     const traceId = res.headers.get('x-trace-id') ?? ''
     const data = await res.json()
-    rumAddAction('lab_trigger', {route, traceId, durationMs, status: res.status})
+    rumAddAction('lab_trigger', { route, traceId, durationMs, status: res.status })
     if (!res.ok) {
-      return {data: null, traceId, durationMs, error: data?.error ?? `HTTP ${res.status}`}
+      return { data: null, traceId, durationMs, error: data?.error ?? `HTTP ${res.status}` }
     }
-    return {data, traceId, durationMs, error: null}
+    return { data, traceId, durationMs, error: null }
   } catch (err) {
     const durationMs = Date.now() - start
     const error = err instanceof Error ? err : new Error(String(err))
-    rumAddError(error, {route})
-    return {data: null, traceId: '', durationMs, error: error.message}
+    console.error(error)
+    return { data: null, traceId: '', durationMs, error: error.message }
   }
 }

@@ -362,8 +362,7 @@ OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
                 <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com
 OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>,dd-otlp-source=<your-value>
 OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
-                <strong>Note:</strong> <Code>dd-otlp-source</Code> is required — without it Datadog
-                accepts the request (202) but silently drops all spans. The value is provided by
+                <strong>Note:</strong> <Code>dd-otlp-source</Code> is required — without it, spans can be silently dropped. The value is provided by
                 your Datadog account team. Adjust the hostname for your Datadog site (e.g.{' '}
                 <Code>otlp.us3.datadoghq.com</Code> for US3).
               </Step>
@@ -644,7 +643,7 @@ await exec(\`npx @datadog/datadog-ci sourcemaps upload .next/server
                 [
                   'OTEL_EXPORTER_OTLP_HEADERS',
                   'Paths B & C',
-                  'e.g. dd-api-key=<key>,dd-otlp-source=<your-value> — passed as HTTP headers on every OTLP request. dd-otlp-source is required (value provided by your Datadog account team); without it Datadog silently drops spans.',
+                  'e.g. dd-api-key=<key>,dd-otlp-source=<your-value>',
                 ],
                 [
                   'SANITY_API_WRITE_TOKEN',
