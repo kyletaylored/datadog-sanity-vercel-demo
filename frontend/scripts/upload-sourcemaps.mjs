@@ -22,10 +22,16 @@ const {
   NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG,
   DATADOG_API_KEY,
   NEXT_PUBLIC_DD_SITE,
+  SOURCEMAPS_DRY_RUN,
 } = process.env
 
-// Only upload on Vercel production deploys
-if (VERCEL_ENV !== 'production') {
+const dryRun = SOURCEMAPS_DRY_RUN === '1' || process.argv.includes('--dry-run')
+if (dryRun) {
+  console.log('[sourcemaps] DRY RUN — datadog-ci will validate but not upload. Map files will not be deleted.')
+}
+
+// Only upload on Vercel production deploys (skipped in dry-run mode so you can test locally)
+if (!dryRun && VERCEL_ENV !== 'production') {
   console.log(`[sourcemaps] Skipping upload — VERCEL_ENV="${VERCEL_ENV ?? 'undefined'}" (production only)`)
   process.exit(0)
 }
@@ -58,10 +64,11 @@ const ddEnv = {
   DATADOG_API_KEY,
 }
 
-const gitFlag = repoUrl ? `--repository-url=${repoUrl}` : '--disable-git'
+const gitFlag = repoUrl ? `--repository-url=${repoUrl} --commit-sha=${sha}` : '--disable-git'
 
 console.log(`[sourcemaps] service=${service} version=${version} site=${site} repo=${repoUrl ?? '(disabled)'}`)
 
+const dryRunFlag = dryRun ? '--dry-run' : ''
 let failed = false
 
 // --- Browser sourcemaps ---
@@ -74,11 +81,14 @@ try {
       `--release-version=${version}`,
       '--minified-path-prefix=/_next/static',
       gitFlag,
-    ].join(' '),
+      dryRunFlag,
+    ].filter(Boolean).join(' '),
     { stdio: 'inherit', env: ddEnv },
   )
-  execSync("find .next/static -name '*.map' -delete", { stdio: 'inherit' })
-  console.log('[sourcemaps] Browser upload complete.')
+  if (!dryRun) {
+    execSync("find .next/static -name '*.map' -delete", { stdio: 'inherit' })
+  }
+  console.log(`[sourcemaps] Browser upload complete${dryRun ? ' (dry run)' : ''}.`)
 } catch (err) {
   console.error('[sourcemaps] Browser upload failed (non-fatal):', err.message)
   failed = true
@@ -107,11 +117,14 @@ if (existsSync('.next/server')) {
           `--release-version=${version}`,
           '--minified-path-prefix=/var/task/frontend/.next/server',
           gitFlag,
-        ].join(' '),
+          dryRunFlag,
+        ].filter(Boolean).join(' '),
         { stdio: 'inherit', env: ddEnv },
       )
-      execSync("find .next/server -name '*.map' -delete", { stdio: 'inherit' })
-      console.log('[sourcemaps] Server upload complete.')
+      if (!dryRun) {
+        execSync("find .next/server -name '*.map' -delete", { stdio: 'inherit' })
+      }
+      console.log(`[sourcemaps] Server upload complete${dryRun ? ' (dry run)' : ''}.`)
     } catch (err) {
       console.error('[sourcemaps] Server upload failed (non-fatal):', err.message)
       failed = true

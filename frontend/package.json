@@ -6,6 +6,7 @@
     "prebuild": "sanity typegen generate",
     "build": "next build",
     "postbuild": "node scripts/upload-sourcemaps.mjs",
+    "sourcemaps:dry-run": "node scripts/upload-sourcemaps.mjs --dry-run",
     "predev": "npm run sanity:typegen",
     "dev": "next dev --inspect",
     "lint": "eslint .",
