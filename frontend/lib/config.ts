@@ -39,12 +39,14 @@ export const CLOUD_REGION = process.env.AWS_REGION ?? process.env.VERCEL_REGION 
 export const DEPLOYMENT_ID = process.env.VERCEL_DEPLOYMENT_ID ?? undefined
 
 // Stable host identifier for OTel host.name.
-// VERCEL_PROJECT_PRODUCTION_URL is the canonical URL of this production deployment (e.g. "myapp.vercel.app" for
-// production, or a preview URL). More useful than a region name because it's
-// human-readable and distinct between production and preview environments.
+// Production uses VERCEL_PROJECT_PRODUCTION_URL (canonical, e.g. "myapp.vercel.app").
+// Non-production uses VERCEL_BRANCH_URL (branch-stable, e.g. "myapp-git-main.vercel.app")
+// with VERCEL_URL (deployment-unique) as a fallback.
 // Falls back to the project name + region, then localhost for local dev.
 export const HOST_NAME =
-  process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL ??
+  DEPLOY_ENV === 'production'
+    ? (process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL)
+    : (process.env.VERCEL_BRANCH_URL ?? process.env.VERCEL_URL) ??
   (process.env.VERCEL_PROJECT_NAME && process.env.VERCEL_REGION
     ? `${process.env.VERCEL_PROJECT_NAME}.${process.env.VERCEL_REGION}`
     : undefined) ??
