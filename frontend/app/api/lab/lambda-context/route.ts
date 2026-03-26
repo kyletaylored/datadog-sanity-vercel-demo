@@ -1,116 +1,101 @@
 import {NextResponse} from 'next/server'
 
-// AWS Lambda Extensions API response from /register
-type ExtensionRegisterBody = {
-  functionName?: string
-  functionVersion?: string
-  handler?: string
-  accountId?: string
-}
-
 export async function GET() {
   const metaHost = process.env.AWS_LAMBDA_METADATA_API
-
-  // Collect available Lambda env vars — some may be absent on Vercel
-  const envSnapshot = {
-    AWS_LAMBDA_METADATA_API: metaHost ?? null,
-    AWS_REGION: process.env.AWS_REGION ?? null,
-    // X-Ray trace ID — Lambda sets this automatically per invocation
-    _X_AMZN_TRACE_ID: process.env._X_AMZN_TRACE_ID ?? null,
-    // These are standard Lambda vars; Vercel may not expose all of them
-    AWS_LAMBDA_FUNCTION_NAME: process.env.AWS_LAMBDA_FUNCTION_NAME ?? null,
-    AWS_LAMBDA_FUNCTION_VERSION: process.env.AWS_LAMBDA_FUNCTION_VERSION ?? null,
-    AWS_LAMBDA_FUNCTION_MEMORY_SIZE: process.env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE ?? null,
-    AWS_EXECUTION_ENV: process.env.AWS_EXECUTION_ENV ?? null,
-  }
 
   if (!metaHost) {
     return NextResponse.json({
       available: false,
       reason: 'AWS_LAMBDA_METADATA_API not set — not running inside a Lambda environment',
-      env: envSnapshot,
     })
   }
 
-  // Attempt 1: Extensions API register endpoint.
-  // This is non-blocking and returns functionName, functionVersion, handler, accountId.
-  // Port 9001 is the Lambda Extensions API sidecar address.
-  let extensionData: ExtensionRegisterBody | null = null
-  let extensionError: string | null = null
-  let extensionId: string | null = null
-
-  try {
-    const res = await fetch(`http://${metaHost}/2020-01-01/extension/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Lambda-Extension-Name': 'signal-lab-probe',
-      },
-      body: JSON.stringify({events: []}),
-      signal: AbortSignal.timeout(500),
-    })
-    extensionId = res.headers.get('Lambda-Extension-Identifier')
-    if (res.ok) {
-      extensionData = await res.json() as ExtensionRegisterBody
-    } else {
-      extensionError = `HTTP ${res.status}: ${await res.text()}`
-    }
-  } catch (err) {
-    extensionError = err instanceof Error ? err.message : String(err)
-  }
-
-  // Attempt 2: Runtime API next-invocation endpoint.
-  // This endpoint normally blocks waiting for the next event, so we use a
-  // short timeout. If we're mid-invocation it will block — that's expected.
-  // We try it anyway to see if this host is the Runtime API instead.
-  let runtimeHeaders: Record<string, string> | null = null
+  // The Lambda Runtime API's invocation/next endpoint returns the current
+  // invocation's metadata in response headers. Unlike the Extensions API
+  // (which closes registration after the init phase), this endpoint is
+  // accessible from within a request handler and returns immediately with
+  // the current invocation context.
+  let runtimeData: {
+    request_id: string | null
+    arn: string | null
+    trace_id: string | null
+    deadline_ms: number | null
+    deadline_utc: string | null
+  } | null = null
   let runtimeError: string | null = null
 
   try {
     const res = await fetch(`http://${metaHost}/2018-06-01/runtime/invocation/next`, {
-      signal: AbortSignal.timeout(150),
+      signal: AbortSignal.timeout(300),
     })
+
     if (res.ok) {
-      // Parse the Lambda-Runtime-* headers that contain ARN, trace ID, etc.
-      runtimeHeaders = {}
-      for (const [k, v] of res.headers.entries()) {
-        if (k.startsWith('lambda-runtime-')) runtimeHeaders[k] = v
+      const deadlineRaw = res.headers.get('lambda-runtime-deadline-ms')
+      const deadlineMs = deadlineRaw ? parseInt(deadlineRaw, 10) : null
+
+      runtimeData = {
+        request_id: res.headers.get('lambda-runtime-aws-request-id'),
+        arn: res.headers.get('lambda-runtime-invoked-function-arn'),
+        trace_id: res.headers.get('lambda-runtime-trace-id'),
+        deadline_ms: deadlineMs,
+        deadline_utc: deadlineMs ? new Date(deadlineMs).toISOString() : null,
       }
     } else {
-      runtimeError = `HTTP ${res.status}`
+      runtimeError = `HTTP ${res.status}: ${await res.text()}`
     }
   } catch (err) {
     runtimeError = err instanceof Error ? err.message : String(err)
   }
 
-  // Construct ARN from extension register data + region when available
-  let constructedArn: string | null = null
-  const region = process.env.AWS_REGION
-  if (extensionData?.accountId && extensionData?.functionName && region) {
-    constructedArn = `arn:aws:lambda:${region}:${extensionData.accountId}:function:${extensionData.functionName}`
-    if (extensionData.functionVersion && extensionData.functionVersion !== '$LATEST') {
-      constructedArn += `:${extensionData.functionVersion}`
+  // Parse the X-Ray trace ID into its components for easier reading.
+  // Format: Root=1-{hex-time}-{hex-id};Parent={span-id};Sampled={0|1};Lineage=...
+  let xrayParsed: Record<string, string> | null = null
+  const rawTraceId = runtimeData?.trace_id
+  if (rawTraceId) {
+    xrayParsed = Object.fromEntries(
+      rawTraceId.split(';').map((part) => {
+        const eq = part.indexOf('=')
+        return [part.slice(0, eq), part.slice(eq + 1)]
+      }),
+    )
+  }
+
+  // Parse the function name and account ID out of the ARN.
+  // Format: arn:aws:lambda:{region}:{accountId}:function:{functionName}[:{qualifier}]
+  let arnParsed: {
+    partition: string
+    region: string
+    account_id: string
+    function_name: string
+    qualifier: string | null
+  } | null = null
+  const rawArn = runtimeData?.arn
+  if (rawArn) {
+    const parts = rawArn.split(':')
+    // parts: ['arn', 'aws', 'lambda', region, accountId, 'function', name, qualifier?]
+    if (parts.length >= 7) {
+      arnParsed = {
+        partition: parts[1],
+        region: parts[3],
+        account_id: parts[4],
+        function_name: parts[6],
+        qualifier: parts[7] ?? null,
+      }
     }
   }
 
   return NextResponse.json({
     available: true,
-    arn: constructedArn,
-    xray_trace_id: process.env._X_AMZN_TRACE_ID ?? null,
-    env: envSnapshot,
-    extensions_api: {
-      endpoint: `http://${metaHost}/2020-01-01/extension/register`,
-      extension_id: extensionId,
-      data: extensionData,
-      error: extensionError,
-    },
+    arn: runtimeData?.arn ?? null,
+    arn_parsed: arnParsed,
+    request_id: runtimeData?.request_id ?? null,
+    trace_id: runtimeData?.trace_id ?? null,
+    trace_id_parsed: xrayParsed,
+    deadline_ms: runtimeData?.deadline_ms ?? null,
+    deadline_utc: runtimeData?.deadline_utc ?? null,
     runtime_api: {
-      endpoint: `http://${metaHost}/2018-06-01/runtime/invocation/next`,
-      headers: runtimeHeaders,
+      host: metaHost,
       error: runtimeError,
-      note: runtimeError?.includes('TimeoutError') || runtimeError?.includes('abort')
-        ? 'Timed out as expected — invocation/next blocks until the next Lambda event'
-        : null,
     },
   })
 }
