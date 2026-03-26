@@ -33,7 +33,7 @@ function useLabAction<T = Record<string, unknown>>(route: string, options?: Requ
   return { status, result, traceId, error, trigger }
 }
 
-const SECTION_IDS = ['section-api', 'section-forms', 'section-search', 'section-proxy', 'section-logs', 'section-otlp', 'section-debug', 'section-errors']
+const SECTION_IDS = ['section-api', 'section-forms', 'section-search', 'section-proxy', 'section-logs', 'section-otlp', 'section-lambda', 'section-debug', 'section-errors']
 const btnClass = 'px-4 py-2 rounded-lg bg-black text-white text-sm hover:bg-gray-800 transition-colors disabled:opacity-50'
 
 export default function LabPage() {
@@ -93,6 +93,7 @@ export default function LabPage() {
 
   const otlpDirect = useLabAction('/api/lab/otel-direct')
   const runtimeMetrics = useLabAction('/api/lab/runtime-metrics')
+  const lambdaContext = useLabAction('/api/lab/lambda-context')
 
   useEffect(() => {
     labFetch<Record<string, string>>('/api/lab/env-info').then((r) => {
@@ -240,6 +241,7 @@ export default function LabPage() {
               { id: 'section-proxy', label: 'Proxy' },
               { id: 'section-logs', label: 'Log Emitter' },
               { id: 'section-otlp', label: 'OTLP Direct' },
+              { id: 'section-lambda', label: 'Lambda Context' },
               { id: 'section-debug', label: 'Debug' },
               { id: 'section-errors', label: 'Error Triggers' },
             ].map(({ id, label }) => (
@@ -276,6 +278,7 @@ export default function LabPage() {
                     { id: 'section-proxy', label: 'Proxy' },
                     { id: 'section-logs', label: 'Log Emitter' },
                     { id: 'section-otlp', label: 'OTLP Direct' },
+                    { id: 'section-lambda', label: 'Lambda Context' },
                     { id: 'section-debug', label: 'Debug' },
                     { id: 'section-errors', label: 'Error Triggers' },
                   ].map(({ id, label }) => (
@@ -535,6 +538,14 @@ export default function LabPage() {
               <LabCard title="Runtime Metrics Snapshot" description="GET /api/lab/runtime-metrics — snapshots heap, RSS, CPU, and uptime, then emits them as OTel gauges. Works alongside background RuntimeNodeInstrumentation metrics." status={runtimeMetrics.status}>
                 <button className={btnClass} onClick={() => runtimeMetrics.trigger()} disabled={runtimeMetrics.status === 'loading'}>Snapshot</button>
                 {runtimeMetrics.result && <ResultDisplay data={runtimeMetrics.result} />}
+              </LabCard>
+            </LabSection></div>
+
+            {/* Lambda Context */}
+            <div id="section-lambda"><LabSection title="Lambda Context" icon={Terminal}>
+              <LabCard title="Lambda Runtime Probe" description="GET /api/lab/lambda-context — reads AWS_LAMBDA_METADATA_API to surface function ARN, X-Ray trace ID, and invocation metadata via the Extensions and Runtime APIs." status={lambdaContext.status}>
+                <button className={btnClass} onClick={() => lambdaContext.trigger()} disabled={lambdaContext.status === 'loading'}>Probe</button>
+                {lambdaContext.result && <ResultDisplay data={lambdaContext.result} />}
               </LabCard>
             </LabSection></div>
 
