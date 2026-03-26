@@ -36,6 +36,18 @@ datadogRum.setGlobalContextProperty(
     process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF ?? 'unknown',
 )
 
+// Stop the RUM session when the app version changes so the new session starts
+// with a consistent version tag. Without this, a long-lived session spans
+// multiple deploys and accumulates multiple version values.
+if (typeof window !== 'undefined') {
+    const DD_VERSION_KEY = '_dd_app_version'
+    const storedVersion = localStorage.getItem(DD_VERSION_KEY)
+    if (storedVersion !== null && storedVersion !== SERVICE_VERSION) {
+        datadogRum.stopSession()
+    }
+    localStorage.setItem(DD_VERSION_KEY, SERVICE_VERSION)
+}
+
 // Datadog Logs initialization
 datadogLogs.init({
     clientToken: process.env.NEXT_PUBLIC_DD_CLIENT_TOKEN!,
