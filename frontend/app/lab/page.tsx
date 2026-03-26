@@ -33,7 +33,7 @@ function useLabAction<T = Record<string, unknown>>(route: string, options?: Requ
   return { status, result, traceId, error, trigger }
 }
 
-const SECTION_IDS = ['section-api', 'section-forms', 'section-search', 'section-proxy', 'section-logs', 'section-debug', 'section-errors']
+const SECTION_IDS = ['section-api', 'section-forms', 'section-search', 'section-proxy', 'section-logs', 'section-otlp', 'section-debug', 'section-errors']
 const btnClass = 'px-4 py-2 rounded-lg bg-black text-white text-sm hover:bg-gray-800 transition-colors disabled:opacity-50'
 
 export default function LabPage() {
@@ -242,6 +242,7 @@ export default function LabPage() {
                     { id: 'section-search', label: 'Campaign Search' },
                     { id: 'section-proxy', label: 'Proxy' },
                     { id: 'section-logs', label: 'Log Emitter' },
+                    { id: 'section-otlp', label: 'OTLP Direct' },
                     { id: 'section-debug', label: 'Debug' },
                     { id: 'section-errors', label: 'Error Triggers' },
                   ].map(({ id, label }) => (
@@ -451,32 +452,32 @@ export default function LabPage() {
               </LabCard>
             </LabSection></div>
 
-            {/* Debug */}
-            <div id="section-debug"><LabSection title="Debug" icon={Terminal}>
-              <LabCard title="Environment Inspector" description="POST /api/lab/debug-env — requires DEBUG_SECRET passcode. Sensitive keys are redacted." status={debugStatus}>
-                <form
-                  className="flex gap-2 mb-3"
-                  onSubmit={(e) => { e.preventDefault(); handleDebugEnv() }}
-                >
-                  <input
-                    type="password"
-                    placeholder="Passcode"
-                    autoComplete="on"
-                    value={debugPassword}
-                    onChange={(e) => setDebugPassword(e.target.value)}
-                    className="flex-1 border rounded px-3 py-2 text-sm font-mono"
-                  />
-                  <button type="submit" className={btnClass} disabled={debugStatus === 'loading'}>Inspect</button>
-                </form>
-                {debugResult && <ResultDisplay data={debugResult} />}
-              </LabCard>
-
-              <LabCard title="Direct OTLP Test" description="GET /api/lab/otel-direct — send a raw trace + log directly to the Vercel sidecar collector (localhost:4318) to verify what signals it accepts." status={otlpDirect.status}>
+            {/* OTLP Direct */}
+            <div id="section-otlp"><LabSection title="OTLP Direct" icon={Terminal}>
+              <LabCard title="Direct OTLP Test" description="GET /api/lab/otel-direct — sends a trace, log, and metric directly to Datadog's OTLP intake (and the Vercel sidecar if available). Verifies dd-otlp-source is accepted for all three signals." status={otlpDirect.status}>
                 <button className={btnClass} onClick={() => otlpDirect.trigger()} disabled={otlpDirect.status === 'loading'}>Send</button>
+                {otlpDirect.result && (() => {
+                  const dd = (otlpDirect.result as Record<string, Record<string, {ok?: boolean}>>)?.datadog
+                  const signals: {label: string; ok: boolean | undefined}[] = [
+                    {label: 'Trace', ok: dd?.traces?.ok},
+                    {label: 'Log', ok: dd?.logs?.ok},
+                    {label: 'Metric', ok: dd?.metrics?.ok},
+                  ]
+                  return (
+                    <div className="flex gap-4 mt-3">
+                      {signals.map(({label, ok}) => (
+                        <div key={label} className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <span className={`w-2 h-2 rounded-full ${ok === true ? 'bg-green-500' : ok === false ? 'bg-red-500' : 'bg-gray-300'}`} />
+                          {label}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
                 {otlpDirect.result && <ResultDisplay data={otlpDirect.result} traceId={otlpDirect.traceId} />}
               </LabCard>
 
-              <LabCard title="OTLP Logs Direct" description="POST /api/lab/otlp-logs — send a log directly to Datadog's OTLP logs endpoint, bypassing the Vercel drain. Requires DATADOG_API_KEY." status={otlpLogStatus}>
+              <LabCard title="Direct OTLP Log" description="POST /api/lab/otlp-logs — send a log directly to Datadog's OTLP logs endpoint, bypassing the Vercel drain. Requires DATADOG_API_KEY." status={otlpLogStatus}>
                 <div className="flex gap-2 mb-3">
                   <input
                     value={otlpLogMsg}
@@ -496,6 +497,27 @@ export default function LabPage() {
                   <button className={btnClass} onClick={handleOtlpLog} disabled={otlpLogStatus === 'loading'}>Send</button>
                 </div>
                 {otlpLogResult && <ResultDisplay data={otlpLogResult} />}
+              </LabCard>
+            </LabSection></div>
+
+            {/* Debug */}
+            <div id="section-debug"><LabSection title="Debug" icon={Terminal}>
+              <LabCard title="Environment Inspector" description="POST /api/lab/debug-env — requires DEBUG_SECRET passcode. Sensitive keys are redacted." status={debugStatus}>
+                <form
+                  className="flex gap-2 mb-3"
+                  onSubmit={(e) => { e.preventDefault(); handleDebugEnv() }}
+                >
+                  <input
+                    type="password"
+                    placeholder="Passcode"
+                    autoComplete="on"
+                    value={debugPassword}
+                    onChange={(e) => setDebugPassword(e.target.value)}
+                    className="flex-1 border rounded px-3 py-2 text-sm font-mono"
+                  />
+                  <button type="submit" className={btnClass} disabled={debugStatus === 'loading'}>Inspect</button>
+                </form>
+                {debugResult && <ResultDisplay data={debugResult} />}
               </LabCard>
             </LabSection></div>
 

@@ -108,20 +108,18 @@ function buildMetricPayload(startNano: string) {
             scope: {name: 'lab.otel-direct'},
             metrics: [
               {
-                name: 'lab.direct_test.count',
-                description: 'Direct OTLP test counter from Signal Lab',
+                name: 'lab.direct_test.value',
+                description: 'Direct OTLP test gauge from Signal Lab',
                 unit: '1',
-                sum: {
+                // Datadog OTLP intake only accepts gauges and delta sums — not cumulative sums or histograms.
+                gauge: {
                   dataPoints: [
                     {
-                      startTimeUnixNano: startNano,
                       timeUnixNano: startNano,
                       asDouble: 1,
                       attributes: [{key: 'lab.source', value: {stringValue: 'signal-lab'}}],
                     },
                   ],
-                  aggregationTemporality: 2, // CUMULATIVE
-                  isMonotonic: true,
                 },
               },
             ],
