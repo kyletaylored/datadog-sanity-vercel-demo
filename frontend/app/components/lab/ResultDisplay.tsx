@@ -1,6 +1,7 @@
 'use client'
 
 import {useState} from 'react'
+import CopyButton from '@/app/components/CopyButton'
 
 export default function ResultDisplay({
   data,
@@ -10,8 +11,9 @@ export default function ResultDisplay({
   traceId?: string
 }) {
   const [copied, setCopied] = useState(false)
+  const json = JSON.stringify(data, null, 2)
 
-  const handleCopy = () => {
+  const handleCopyTrace = () => {
     if (traceId) {
       navigator.clipboard.writeText(traceId)
       setCopied(true)
@@ -21,14 +23,17 @@ export default function ResultDisplay({
 
   return (
     <div className="mt-3">
-      <pre className="bg-gray-950 text-green-400 text-xs rounded-lg p-4 overflow-auto max-h-64 whitespace-pre-wrap break-words">
-        {JSON.stringify(data, null, 2)}
-      </pre>
+      <div className="relative group rounded-lg overflow-hidden border border-gray-800">
+        <CopyButton code={json} />
+        <pre className="bg-gray-950 text-green-400 text-xs p-4 overflow-auto max-h-64 whitespace-pre-wrap break-words">
+          {json}
+        </pre>
+      </div>
       {traceId && (
         <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 font-mono">
           <span>Trace ID: {traceId}</span>
           <button
-            onClick={handleCopy}
+            onClick={handleCopyTrace}
             className="px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700"
           >
             {copied ? 'Copied!' : 'Copy'}
