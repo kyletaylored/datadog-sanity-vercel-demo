@@ -42,6 +42,13 @@ export default function LabPage() {
   const cmsFetch = useLabAction('/api/lab/cms-fetch')
   const handledError = useLabAction('/api/lab/handled-error')
   const unhandledError = useLabAction('/api/lab/unhandled-error')
+  const typeError = useLabAction('/api/lab/error/type-error')
+  const syntaxError = useLabAction('/api/lab/error/syntax-error')
+  const customError = useLabAction('/api/lab/error/custom-error')
+  const rangeError = useLabAction('/api/lab/error/range-error')
+  const asyncError = useLabAction('/api/lab/error/async-error')
+  const unhandledTypeError = useLabAction('/api/lab/error/unhandled-type-error')
+  const unhandledCustomError = useLabAction('/api/lab/error/unhandled-custom-error')
 
   const [slowDelay, setSlowDelay] = useState('2000')
   const slowQuery = useLabAction(`/api/lab/slow-query?delay=${slowDelay}`)
@@ -572,14 +579,49 @@ export default function LabPage() {
 
             {/* Error Triggers */}
             <div id="section-errors"><LabSection title="Error Triggers" icon={AlertTriangle}>
+              <p className="text-xs text-gray-500 -mt-1 mb-1">Handled errors are caught and returned as 500 JSON. Unhandled errors throw and let Next.js produce the 500 — both set OTel span attributes for Datadog Error Tracking.</p>
+
+              <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mt-2">Handled</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <LabCard title="Handled Error" description="GET /api/lab/handled-error — throws and catches, returns 500." status={handledError.status}>
+                <LabCard title="Generic Error" description="GET /api/lab/handled-error — basic Error class, caught and logged." status={handledError.status}>
                   <button className={btnClass} onClick={() => handledError.trigger()} disabled={handledError.status === 'loading'}>Trigger</button>
                   {handledError.result && <ResultDisplay data={handledError.result} traceId={handledError.traceId} />}
                 </LabCard>
-                <LabCard title="Unhandled Error" description="GET /api/lab/unhandled-error — throws without catching (500)." status={unhandledError.status}>
+                <LabCard title="TypeError — Null Access" description="GET /api/lab/error/type-error — accesses a property on null." status={typeError.status}>
+                  <button className={btnClass} onClick={() => typeError.trigger()} disabled={typeError.status === 'loading'}>Trigger</button>
+                  {typeError.result && <ResultDisplay data={typeError.result} traceId={typeError.traceId} />}
+                </LabCard>
+                <LabCard title="SyntaxError — Bad JSON" description="GET /api/lab/error/syntax-error — JSON.parse on a malformed string." status={syntaxError.status}>
+                  <button className={btnClass} onClick={() => syntaxError.trigger()} disabled={syntaxError.status === 'loading'}>Trigger</button>
+                  {syntaxError.result && <ResultDisplay data={syntaxError.result} traceId={syntaxError.traceId} />}
+                </LabCard>
+                <LabCard title="Custom Error Class" description="GET /api/lab/error/custom-error — DatabaseConnectionError with code + host attributes." status={customError.status}>
+                  <button className={btnClass} onClick={() => customError.trigger()} disabled={customError.status === 'loading'}>Trigger</button>
+                  {customError.result && <ResultDisplay data={customError.result} traceId={customError.traceId} />}
+                </LabCard>
+                <LabCard title="RangeError — Stack Overflow" description="GET /api/lab/error/range-error — infinite recursion, tests truncated stack capture." status={rangeError.status}>
+                  <button className={btnClass} onClick={() => rangeError.trigger()} disabled={rangeError.status === 'loading'}>Trigger</button>
+                  {rangeError.result && <ResultDisplay data={rangeError.result} traceId={rangeError.traceId} />}
+                </LabCard>
+                <LabCard title="Async Error with Cause" description="GET /api/lab/error/async-error — async rejection wrapped with error cause chain." status={asyncError.status}>
+                  <button className={btnClass} onClick={() => asyncError.trigger()} disabled={asyncError.status === 'loading'}>Trigger</button>
+                  {asyncError.result && <ResultDisplay data={asyncError.result} traceId={asyncError.traceId} />}
+                </LabCard>
+              </div>
+
+              <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mt-4">Unhandled</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <LabCard title="Generic Unhandled" description="GET /api/lab/unhandled-error — throws a plain Error, no catch." status={unhandledError.status}>
                   <button className={btnClass} onClick={() => unhandledError.trigger()} disabled={unhandledError.status === 'loading'}>Trigger</button>
                   {unhandledError.result && <ResultDisplay data={unhandledError.result} traceId={unhandledError.traceId} />}
+                </LabCard>
+                <LabCard title="Unhandled TypeError" description="GET /api/lab/error/unhandled-type-error — throws a TypeError, tests grouping by error.type." status={unhandledTypeError.status}>
+                  <button className={btnClass} onClick={() => unhandledTypeError.trigger()} disabled={unhandledTypeError.status === 'loading'}>Trigger</button>
+                  {unhandledTypeError.result && <ResultDisplay data={unhandledTypeError.result} traceId={unhandledTypeError.traceId} />}
+                </LabCard>
+                <LabCard title="Unhandled Custom Error" description="GET /api/lab/error/unhandled-custom-error — throws UpstreamServiceError with upstream.service + status_code attributes." status={unhandledCustomError.status}>
+                  <button className={btnClass} onClick={() => unhandledCustomError.trigger()} disabled={unhandledCustomError.status === 'loading'}>Trigger</button>
+                  {unhandledCustomError.result && <ResultDisplay data={unhandledCustomError.result} traceId={unhandledCustomError.traceId} />}
                 </LabCard>
               </div>
             </LabSection></div>
