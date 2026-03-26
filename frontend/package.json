@@ -31,6 +31,7 @@
     "@sanity/uuid": "^3.0.2",
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/typography": "^0.5.19",
+    "@types/turndown": "^5.0.6",
     "@vercel/otel": "^2.1.1",
     "@vercel/speed-insights": "^1.2.0",
     "autoprefixer": "^10.4.22",
@@ -47,7 +48,8 @@
     "shiki": "^4.0.2",
     "simple-git": "^3.33.0",
     "sonner": "^2.0.7",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "turndown": "^7.2.2"
   },
   "devDependencies": {
     "@types/node": "^20.19.25",

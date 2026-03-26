@@ -12,6 +12,7 @@ import {
 } from '@/app/components/DocComponents'
 import MermaidDiagram from '@/app/components/MermaidDiagram'
 import Collapsible from '@/app/components/Collapsible'
+import DownloadMarkdownButton from '@/app/components/DownloadMarkdownButton'
 
 const SIGNAL_FLOW_DIAGRAM = `
 flowchart LR
@@ -130,9 +131,12 @@ export default function SetupPage() {
 
           {/* Content */}
           <main className="min-w-0 max-w-2xl">
-            <h1 className="text-3xl font-bold mb-2 tracking-tight">
-              Next.js + Vercel + Datadog
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h1 className="text-3xl font-bold tracking-tight">
+                Next.js + Vercel + Datadog
+              </h1>
+              <DownloadMarkdownButton filename="datadog-vercel-setup-guide" />
+            </div>
             <p className="text-gray-500 mb-12">
               Full observability in one afternoon. Pick the path that matches your Vercel plan, drop
               in the snippets, deploy.
