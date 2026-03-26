@@ -305,11 +305,6 @@ export default function SetupPage() {
               Sending logs via OTLP to the sidecar returns 503 — logs reach Datadog exclusively
               via the console → drain path.
             </Note>
-            <Note variant="warning">
-              <Code>VERCEL_OTEL_ENDPOINTS</Code> is injected by the integration and contains a
-              Datadog API key embedded in JSON. Do not log <Code>process.env</Code> in full —
-              key-name redaction won&apos;t catch values nested inside other variables.
-            </Note>
 
             {/* ── Path B ────────────────────────────────────────────── */}
             <H3 id="path-drain">Path B — Manual Vercel Drain</H3>
@@ -320,8 +315,8 @@ export default function SetupPage() {
             </p>
             <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
               <Step n={1}>
-                In Vercel Dashboard → Project → <strong>Settings → Log Drains → Add Drain</strong>.
-                Set type to <strong>OTLP</strong>, endpoint to{' '}
+                In Vercel Dashboard, go to <strong>Project → Settings → Drains → Add Drain</strong>.
+                Use the <strong>Traces</strong> type, give it a name (i.e., {' '}<Code>Datadog OTLP Traces</Code>), set the URL destination to{' '}
                 <Code>https://otlp.datadoghq.com/v1/traces</Code> (adjust for your{' '}
                 <Code>DD_SITE</Code>).
               </Step>
@@ -652,10 +647,6 @@ await exec(\`npx @datadog/datadog-ci sourcemaps upload .next/server
                 ],
               ]}
             />
-            <Note>
-              <Code>VERCEL_OTEL_ENDPOINTS</Code> is auto-injected and managed by Vercel (Path A). Do not set it manually. Its JSON value embeds a Datadog API key
-              — avoid logging <Code>process.env</Code> in full.
-            </Note>
 
             {/* Footer */}
             <div className="mt-14 pt-6 border-t border-gray-100 text-xs text-gray-400 flex justify-between items-center">
