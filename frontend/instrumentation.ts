@@ -4,7 +4,6 @@ import { SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION, CLOUD_REGION,
 import { buildMetricReaders, buildMetricViews } from '@/lib/metrics'
 
 export function register() {
-  const metricReaders = buildMetricReaders()
 
   registerOTel({
     serviceName: SERVICE_NAME,
@@ -13,12 +12,12 @@ export function register() {
       'service.version': SERVICE_VERSION,
       'deployment.region': DEPLOY_REGION,
       'host.name': DEPLOY_REGION,
-      'cloud.region': CLOUD_REGION,
       'git.repository_url': GIT_REPO_URL,
     },
-    // (experimental) RuntimeNodeInstrumentation collects event loop lag, GC, heap, and CPU metrics.
-    metricReaders,
+
+    // (experimental) RuntimeNodeInstrumentation collects event loop, GC, heap, and CPU metrics.
+    metricReaders: buildMetricReaders(),
     views: buildMetricViews(),
-    instrumentations: metricReaders.length ? [new RuntimeNodeInstrumentation({ monitoringPrecision: 5000 })] : [],
+    instrumentations: [new RuntimeNodeInstrumentation({ monitoringPrecision: 5000 })],
   })
 }
