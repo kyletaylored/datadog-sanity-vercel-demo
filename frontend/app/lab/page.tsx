@@ -92,6 +92,7 @@ export default function LabPage() {
   const [otlpLogResult, setOtlpLogResult] = useState<Record<string, unknown> | null>(null)
 
   const otlpDirect = useLabAction('/api/lab/otel-direct')
+  const runtimeMetrics = useLabAction('/api/lab/runtime-metrics')
 
   useEffect(() => {
     labFetch<Record<string, string>>('/api/lab/env-info').then((r) => {
@@ -497,6 +498,11 @@ export default function LabPage() {
                   <button className={btnClass} onClick={handleOtlpLog} disabled={otlpLogStatus === 'loading'}>Send</button>
                 </div>
                 {otlpLogResult && <ResultDisplay data={otlpLogResult} />}
+              </LabCard>
+
+              <LabCard title="Runtime Metrics Snapshot" description="GET /api/lab/runtime-metrics — snapshots heap, RSS, CPU, and uptime, then emits them as OTel gauges. Works alongside background RuntimeNodeInstrumentation metrics." status={runtimeMetrics.status}>
+                <button className={btnClass} onClick={() => runtimeMetrics.trigger()} disabled={runtimeMetrics.status === 'loading'}>Snapshot</button>
+                {runtimeMetrics.result && <ResultDisplay data={runtimeMetrics.result} />}
               </LabCard>
             </LabSection></div>
 

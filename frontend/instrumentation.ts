@@ -1,18 +1,24 @@
 import { registerOTel } from '@vercel/otel'
-import { SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION, GIT_REPO_URL } from '@/lib/config'
+import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node'
+import { SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION, CLOUD_REGION, GIT_REPO_URL } from '@/lib/config'
+import { buildMetricReaders, buildMetricViews } from '@/lib/metrics'
 
 export function register() {
-  // Vercel runs an OTel sidecar collector at localhost:4318 when VERCEL_OTEL_ENDPOINTS is set.
-  // @vercel/otel sends traces there automatically. Logs are NOT forwarded by the sidecar
-  // (it has no Datadog logs endpoint configured) — logs reach Datadog via the console
-  // log drain instead.
+  const metricReaders = buildMetricReaders()
+
   registerOTel({
     serviceName: SERVICE_NAME,
     attributes: {
       'deployment.environment': DEPLOY_ENV,
       'service.version': SERVICE_VERSION,
       'deployment.region': DEPLOY_REGION,
+      'host.name': DEPLOY_REGION,
+      'cloud.region': CLOUD_REGION,
       'git.repository_url': GIT_REPO_URL,
     },
+    // (experimental) RuntimeNodeInstrumentation collects event loop lag, GC, heap, and CPU metrics.
+    metricReaders,
+    views: buildMetricViews(),
+    instrumentations: metricReaders.length ? [new RuntimeNodeInstrumentation({ monitoringPrecision: 5000 })] : [],
   })
 }
