@@ -150,13 +150,18 @@ export async function GET() {
 
   // Direct Datadog OTLP path
   const ddApiKey = process.env.DATADOG_API_KEY
-  const ddOtlpSource = process.env.DD_OTLP_SOURCE
   const ddSite = process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com'
-  const ddBase = `https://otlp.${ddSite}`
+  // On Vercel, use the integration endpoint — no dd-otlp-source header required.
+  // Outside Vercel (local dev), fall back to the standard OTLP endpoint + dd-otlp-source.
+  const onVercel = !!process.env.VERCEL
+  const ddBase = onVercel
+    ? `https://vercel.integrations.otlp.${ddSite}`
+    : `https://otlp.${ddSite}`
   const ddBaseHeaders: Record<string, string> = ddApiKey ? {'dd-api-key': ddApiKey} : {}
-  const ddTraceHeaders: Record<string, string> = ddOtlpSource
-    ? {...ddBaseHeaders, 'dd-otlp-source': ddOtlpSource}
-    : ddBaseHeaders
+  const ddTraceHeaders: Record<string, string> =
+    !onVercel && process.env.DD_OTLP_SOURCE
+      ? {...ddBaseHeaders, 'dd-otlp-source': process.env.DD_OTLP_SOURCE}
+      : ddBaseHeaders
   const ddAvailable = !!ddApiKey
 
   const ddTraceId = randomHex(16)
@@ -213,7 +218,7 @@ export async function GET() {
       available: ddAvailable,
       endpoint: ddBase,
       traceId: ddTraceId,
-      otlpSourceSet: !!ddOtlpSource,
+      vercelIntegration: onVercel,
       traces: {endpoint: `${ddBase}/v1/traces`, ...ddTraces},
       logs: {endpoint: `${ddBase}/v1/logs`, ...ddLogs},
       metrics: {endpoint: `${ddBase}/v1/metrics`, ...ddMetrics},

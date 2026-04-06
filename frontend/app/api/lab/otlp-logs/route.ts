@@ -10,6 +10,11 @@ function nowNano(): string {
 export async function POST(request: NextRequest) {
   const ddApiKey = process.env.DATADOG_API_KEY
   const ddSite = process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com'
+  // On Vercel, use the integration endpoint — no dd-otlp-source header required.
+  const onVercel = !!process.env.VERCEL
+  const ddBase = onVercel
+    ? `https://vercel.integrations.otlp.${ddSite}`
+    : `https://otlp.${ddSite}`
 
   if (!ddApiKey) {
     return NextResponse.json(
@@ -25,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   const severityMap = {info: 9, warn: 13, error: 17}
   const now = nowNano()
-  const endpoint = `https://otlp.${ddSite}/v1/logs`
+  const endpoint = `${ddBase}/v1/logs`
 
   const spanContext = trace.getActiveSpan()?.spanContext()
   const traceId = spanContext?.traceId ?? ''
@@ -73,14 +78,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'dd-api-key': ddApiKey},
-      body: JSON.stringify(payload),
-    })
+    const headers: Record<string, string> = {'Content-Type': 'application/json', 'dd-api-key': ddApiKey}
+    if (!onVercel && process.env.DD_OTLP_SOURCE) {
+      headers['dd-otlp-source'] = process.env.DD_OTLP_SOURCE
+    }
+    const res = await fetch(endpoint, {method: 'POST', headers, body: JSON.stringify(payload)})
     const text = await res.text()
     return NextResponse.json({
       endpoint,
+      vercelIntegration: onVercel,
       status: res.status,
       ok: res.ok,
       response: text || '(empty)',

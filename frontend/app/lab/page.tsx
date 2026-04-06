@@ -497,7 +497,7 @@ export default function LabPage() {
 
             {/* OTLP Direct */}
             <div id="section-otlp"><LabSection title="OTLP Direct" icon={Terminal}>
-              <LabCard title="Direct OTLP Test" description="GET /api/lab/otel-direct — sends a trace, log, and metric directly to Datadog's OTLP intake (and the Vercel sidecar if available). Verifies dd-otlp-source is accepted for all three signals." status={otlpDirect.status}>
+              <LabCard title="Direct OTLP Test" description="GET /api/lab/otel-direct — sends a trace, log, and metric directly to Datadog's OTLP intake (and the Vercel sidecar if available). On Vercel uses vercel.integrations.otlp.* endpoint; locally falls back to otlp.* with dd-otlp-source." status={otlpDirect.status}>
                 <button className={btnClass} onClick={() => otlpDirect.trigger()} disabled={otlpDirect.status === 'loading'}>Send</button>
                 {otlpDirect.result && (() => {
                   const dd = (otlpDirect.result as Record<string, Record<string, {ok?: boolean}>>)?.datadog

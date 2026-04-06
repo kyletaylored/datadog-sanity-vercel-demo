@@ -72,7 +72,9 @@ DATADOG_API_KEY=
 Optional for local dev:
 
 ```bash
-# Send APM traces directly to Datadog when running outside Vercel
+# Send APM traces directly to Datadog when running outside Vercel.
+# On Vercel, use vercel.integrations.otlp.{site} (no dd-otlp-source needed).
+# Locally, dd-otlp-source is still required with the standard otlp.{site} endpoint.
 OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com
 OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-key>,dd-otlp-source=<your-value>
 OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf

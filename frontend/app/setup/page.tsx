@@ -239,7 +239,7 @@ export default function SetupPage() {
                   plan: 'Vercel Pro / Enterprise',
                   pros: [
                     'No env vars needed for trace routing',
-                    'Custom drain headers (dd-otlp-source)',
+                    'Simple dd-api-key drain auth',
                     'Works alongside other integrations',
                   ],
                   cons: ['Manual drain setup', 'Vercel egress fees'],
@@ -349,23 +349,23 @@ export default function SetupPage() {
             {/* ── Path B ────────────────────────────────────────────── */}
             <H3 id="path-drain">Path B — Manual Vercel Drain</H3>
             <p className="text-sm text-gray-600 mb-4">
-              Use when you want explicit control over drain headers without installing a native
-              integration — for example, to set a custom <Code>dd-otlp-source</Code> value or send
-              to a non-standard Datadog site. No <Code>OTEL_EXPORTER_OTLP_*</Code> env vars needed;
-              Vercel routes sidecar spans to the drain automatically.
+              Use when you want explicit control over drain configuration without installing a
+              native integration. No <Code>OTEL_EXPORTER_OTLP_*</Code> env vars needed; Vercel
+              routes sidecar spans to the drain automatically.
             </p>
             <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
               <Step n={1}>
                 In Vercel Dashboard, go to <strong>Project → Settings → Drains → Add Drain</strong>.
                 Use the <strong>Traces</strong> type, give it a name (e.g.{' '}
                 <Code>Datadog OTLP Traces</Code>), and set the URL destination to{' '}
-                <Code>https://otlp.datadoghq.com/v1/traces</Code> (adjust for your{' '}
-                <Code>DD_SITE</Code>).
+                <Code>https://vercel.integrations.otlp.datadoghq.com/v1/traces</Code> (adjust the
+                hostname for your Datadog site, e.g.{' '}
+                <Code>vercel.integrations.otlp.us3.datadoghq.com</Code> for US3).
               </Step>
               <Step n={2}>
-                Add drain headers: <Code>dd-api-key: &lt;your-key&gt;</Code> and{' '}
-                <Code>dd-otlp-source: &lt;your-value&gt;</Code> (required — without it, Datadog
-                silently drops ingested spans). The value is provided by your Datadog account team.
+                Add a single drain header: <Code>dd-api-key: &lt;your-key&gt;</Code>. The{' '}
+                <Code>vercel.integrations.otlp.*</Code> endpoint does not require{' '}
+                <Code>dd-otlp-source</Code>.
               </Step>
               <Step n={3}>
                 Optionally add a second drain of type <strong>Logs</strong> pointing to your log
@@ -394,12 +394,12 @@ export default function SetupPage() {
             <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
               <Step n={1}>
                 Set env vars — <Code>@vercel/otel</Code> reads these automatically:
-                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.datadoghq.com
-OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>,dd-otlp-source=<your-value>
+                <Pre lang="bash">{`OTEL_EXPORTER_OTLP_ENDPOINT=https://vercel.integrations.otlp.datadoghq.com
+OTEL_EXPORTER_OTLP_HEADERS=dd-api-key=<your-dd-api-key>
 OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
-                <strong>Note:</strong> <Code>dd-otlp-source</Code> is required — without it, spans can be silently dropped. The value is provided by
-                your Datadog account team. Adjust the hostname for your Datadog site (e.g.{' '}
-                <Code>otlp.us3.datadoghq.com</Code> for US3).
+                Adjust the hostname for your Datadog site (e.g.{' '}
+                <Code>vercel.integrations.otlp.us3.datadoghq.com</Code> for US3). No{' '}
+                <Code>dd-otlp-source</Code> header required with this endpoint.
               </Step>
               <Step n={2}>
                 Install packages and create <Code>instrumentation.ts</Code> — see the{' '}
@@ -427,8 +427,8 @@ OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf`}</Pre>
               </a> intake endpoint. Configure it with
               logs-specific env vars (separate from the traces endpoint):
             </p>
-            <Pre lang="bash">{`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=https://otlp.datadoghq.com/v1/logs
-OTEL_EXPORTER_OTLP_LOGS_HEADERS=dd-api-key=<your-dd-api-key>,dd-otlp-source=<your-value>
+            <Pre lang="bash">{`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=https://vercel.integrations.otlp.datadoghq.com/v1/logs
+OTEL_EXPORTER_OTLP_LOGS_HEADERS=dd-api-key=<your-dd-api-key>
 OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=http/protobuf`}</Pre>
             <p className="text-sm text-gray-600 mb-3">
               Then emit logs via <Code>@opentelemetry/api-logs</Code>:
@@ -678,7 +678,7 @@ await exec(\`npx @datadog/datadog-ci sourcemaps upload .next/server
                 [
                   'OTEL_EXPORTER_OTLP_HEADERS',
                   'Paths B & C',
-                  'e.g. dd-api-key=<key>,dd-otlp-source=<your-value>',
+                  'e.g. dd-api-key=<key> (no dd-otlp-source needed with vercel.integrations.otlp.* endpoint)',
                 ],
                 [
                   'SANITY_API_WRITE_TOKEN',
@@ -750,10 +750,9 @@ export function register() {
     logRecordProcessors: [
       new SimpleLogRecordProcessor(
         new OTLPLogExporter({
-          url: 'https://otlp.datadoghq.com/v1/logs',
+          url: 'https://vercel.integrations.otlp.datadoghq.com/v1/logs',
           headers: {
             'dd-api-key': process.env.DATADOG_API_KEY!,
-            'dd-otlp-source': process.env.DD_OTLP_SOURCE!,
           },
         }),
       ),

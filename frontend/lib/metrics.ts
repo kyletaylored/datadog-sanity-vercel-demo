@@ -28,16 +28,20 @@ export function buildMetricReaders(): PeriodicExportingMetricReader[] {
   if (!ddApiKey) return []
 
   const ddSite = process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com'
-  const ddOtlpSource = process.env.DD_OTLP_SOURCE
+  // On Vercel, use the integration endpoint — no dd-otlp-source header required.
+  const ddBase = process.env.VERCEL
+    ? `https://vercel.integrations.otlp.${ddSite}`
+    : `https://otlp.${ddSite}`
+  const headers: Record<string, string> = {'dd-api-key': ddApiKey}
+  if (!process.env.VERCEL && process.env.DD_OTLP_SOURCE) {
+    headers['dd-otlp-source'] = process.env.DD_OTLP_SOURCE
+  }
 
   return [
     new PeriodicExportingMetricReader({
       exporter: new OTLPMetricExporter({
-        url: `https://otlp.${ddSite}/v1/metrics`,
-        headers: {
-          'dd-api-key': ddApiKey,
-          ...(ddOtlpSource ? {'dd-otlp-source': ddOtlpSource} : {}),
-        },
+        url: `${ddBase}/v1/metrics`,
+        headers,
         // Datadog rejects cumulative sums — delta required.
         temporalityPreference: AggregationTemporalityPreference.DELTA,
       }),
