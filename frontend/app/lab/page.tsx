@@ -325,7 +325,11 @@ export default function LabPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <h3 className="font-semibold text-sm text-gray-900 mb-3">Quick Links</h3>
                 <ul className="text-xs space-y-2 font-mono text-gray-600">
-                  <li><a href="/api/lab/health" target="_blank" className="hover:underline">/api/lab/health ↗</a></li>
+                  <li>
+                    <a href="/api-docs" className="hover:underline font-semibold text-gray-800">API Reference ↗</a>
+                  </li>
+                  <li><a href="/api/openapi" target="_blank" className="hover:underline text-gray-400">openapi.json ↗</a></li>
+                  <li className="border-t border-gray-100 pt-2 mt-1"><a href="/api/lab/health" target="_blank" className="hover:underline">/api/lab/health ↗</a></li>
                   <li><a href="/api/lab/env-info" target="_blank" className="hover:underline">/api/lab/env-info ↗</a></li>
                   <li><a href="/api/lab/cms-fetch" target="_blank" className="hover:underline">/api/lab/cms-fetch ↗</a></li>
                   <li><a href="/api/lab/flags" target="_blank" className="hover:underline">/api/lab/flags ↗</a></li>
