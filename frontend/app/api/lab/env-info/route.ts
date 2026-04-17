@@ -1,5 +1,5 @@
 import {withLabSpan, getTraceContext} from '@/lib/telemetry'
-import {SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION} from '@/lib/config'
+import {SERVICE_NAME, DEPLOY_ENV, SERVICE_VERSION, DEPLOY_REGION, GIT_REPO_URL} from '@/lib/config'
 import {getLocalGitMeta} from '@/lib/git'
 import {NextResponse} from 'next/server'
 
@@ -21,7 +21,7 @@ export async function GET() {
       region: DEPLOY_REGION,
       gitCommitSha: vercelSha ? SERVICE_VERSION : local?.sha ?? 'unknown',
       gitBranch: vercelBranch ?? local?.branch ?? 'unknown',
-      gitRepoUrl: local?.repoUrl,
+      gitRepoUrl: GIT_REPO_URL ?? local?.repoUrl,
       traceId,
     })
   })

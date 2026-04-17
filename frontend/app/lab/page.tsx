@@ -329,6 +329,9 @@ export default function LabPage() {
                     <a href="/api-docs" className="hover:underline font-semibold text-gray-800">API Reference ↗</a>
                   </li>
                   <li><a href="/api/openapi" target="_blank" className="hover:underline text-gray-400">openapi.json ↗</a></li>
+                  {envData?.gitRepoUrl && (
+                    <li><a href={envData.gitRepoUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-gray-500">GitHub repo ↗</a></li>
+                  )}
                   <li className="border-t border-gray-100 pt-2 mt-1"><a href="/api/lab/health" target="_blank" className="hover:underline">/api/lab/health ↗</a></li>
                   <li><a href="/api/lab/env-info" target="_blank" className="hover:underline">/api/lab/env-info ↗</a></li>
                   <li><a href="/api/lab/cms-fetch" target="_blank" className="hover:underline">/api/lab/cms-fetch ↗</a></li>
