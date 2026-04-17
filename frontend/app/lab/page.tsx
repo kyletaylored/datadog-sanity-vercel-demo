@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, Search, AlertTriangle, FileText, Globe, Terminal } from 'lucide-react'
+import { Activity, Search, AlertTriangle, FileText, Globe, Terminal, ExternalLink } from 'lucide-react'
 import LabSection from '@/app/components/lab/LabSection'
 import LabCard from '@/app/components/lab/LabCard'
 import ResultDisplay from '@/app/components/lab/ResultDisplay'
@@ -324,18 +324,41 @@ export default function LabPage() {
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <h3 className="font-semibold text-sm text-gray-900 mb-3">Quick Links</h3>
-                <ul className="text-xs space-y-2 font-mono text-gray-600">
+                <ul className="text-xs space-y-2 font-mono">
                   <li>
-                    <a href="/api-docs" className="hover:underline font-semibold text-gray-800">API Reference ↗</a>
+                    <a href="/api-docs" className="flex items-center justify-between font-semibold text-gray-800 hover:underline">
+                      API Reference
+                      <ExternalLink className="w-3 h-3 text-gray-300 shrink-0" />
+                    </a>
                   </li>
-                  <li><a href="/api/openapi" target="_blank" className="hover:underline text-gray-400">openapi.json ↗</a></li>
+                  <li>
+                    <a href="/api/openapi" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between text-gray-400 hover:text-gray-700 hover:underline">
+                      openapi.json
+                      <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
+                  </li>
                   {envData?.gitRepoUrl && (
-                    <li><a href={envData.gitRepoUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-gray-500">GitHub repo ↗</a></li>
+                    <li>
+                      <a href={envData.gitRepoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between text-gray-500 hover:text-gray-800 hover:underline">
+                        GitHub repo
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                    </li>
                   )}
-                  <li className="border-t border-gray-100 pt-2 mt-1"><a href="/api/lab/health" target="_blank" className="hover:underline">/api/lab/health ↗</a></li>
-                  <li><a href="/api/lab/env-info" target="_blank" className="hover:underline">/api/lab/env-info ↗</a></li>
-                  <li><a href="/api/lab/cms-fetch" target="_blank" className="hover:underline">/api/lab/cms-fetch ↗</a></li>
-                  <li><a href="/api/lab/flags" target="_blank" className="hover:underline">/api/lab/flags ↗</a></li>
+                  <li className="border-t border-gray-100 pt-2 mt-1 space-y-2">
+                    {[
+                      '/api/lab/health',
+                      '/api/lab/env-info',
+                      '/api/lab/cms-fetch',
+                      '/api/lab/flags',
+                    ].map((path) => (
+                      <div key={path}>
+                        <a href={path} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 hover:underline">
+                          {path}
+                        </a>
+                      </div>
+                    ))}
+                  </li>
                 </ul>
               </div>
             </div>
