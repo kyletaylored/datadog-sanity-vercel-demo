@@ -10,7 +10,7 @@
 | CMS | Sanity (monorepo: `studio/`) |
 | Deployment | Vercel |
 | Tracing | `@vercel/otel` → Datadog APM |
-| RUM | `@datadog/browser-rum` |
+| RUM | `@datadog/browser-rum` + `@datadog/browser-rum-nextjs` |
 | Styling | Tailwind CSS v4 |
 
 ## Getting Started
@@ -91,4 +91,4 @@ See [`docs/LAB.md`](./docs/LAB.md) for full route documentation.
 
 2. **Logs** — Every lab route emits structured JSON via `structuredLog`. Vercel log drain forwards these to Datadog Logs. Filter: `@event:lab_* @service:martech-pulse`.
 
-3. **RUM** — `@datadog/browser-rum` is initialized in `app/components/datadog-init.tsx`. The `useLab.ts` hook fires `addAction('lab_trigger')` after each API call with the `traceId` for APM correlation.
+3. **RUM** — `@datadog/browser-rum` is initialized in `instrumentation-client.ts` with the [Next.js plugin](https://docs.datadoghq.com/integrations/rum-next-plugin/); `<DatadogAppRouter />` in `app/layout.tsx` names views by route pattern, and `app/error.tsx` / `app/global-error.tsx` report errors via `addNextjsError`. The `useLab.ts` hook fires `addAction('lab_trigger')` after each API call with the `traceId` for APM correlation.
