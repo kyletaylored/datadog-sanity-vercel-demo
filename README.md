@@ -15,7 +15,7 @@ A full-stack marketing platform demo built on **Next.js 16 App Router**, **Sanit
 | Signal | How it gets to Datadog |
 |--------|----------------------|
 | **APM traces** | `@vercel/otel` → Vercel OTLP sidecar → all configured trace drains |
-| **RUM** | `@datadog/browser-rum` initialized in `datadog-init.tsx` |
+| **RUM** | `@datadog/browser-rum` + Next.js plugin, initialized in `instrumentation-client.ts` |
 | **Logs** | Structured JSON on stdout/stderr → Vercel log drain → Datadog Logs |
 | **Sourcemaps** | `@datadog/datadog-ci` postbuild script → Datadog |
 | **Runtime metrics** | `RuntimeNodeInstrumentation` (event loop, GC, heap, CPU) via OTel |

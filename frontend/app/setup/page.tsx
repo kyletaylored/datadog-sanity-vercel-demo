@@ -461,13 +461,27 @@ logs.getLogger('my-service').emit({
             {/* ── RUM ───────────────────────────────────────────────── */}
             <H2 id="rum">RUM</H2>
             <p className="text-sm text-gray-600 mb-4">
-              Create a client component and render it once in your root layout. It initializes both
-              RUM and Browser Logs.
+              Uses the{' '}
+              <a
+                href="https://docs.datadoghq.com/integrations/rum-next-plugin/"
+                className="underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Datadog RUM Next.js plugin
+              </a>{' '}
+              (Next.js 15.3+, Browser SDK v7). RUM and Browser Logs initialize in{' '}
+              <Code>instrumentation-client.ts</Code>, which Next.js runs before hydration, and{' '}
+              <Code>&lt;DatadogAppRouter /&gt;</Code> names views by route pattern (e.g.{' '}
+              <Code>/posts/[slug]</Code>) rather than raw URLs.
             </p>
-            <Pre lang="bash">{`npm install @datadog/browser-rum @datadog/browser-logs`}</Pre>
-            <Pre filename="app/components/datadog-init.tsx" lang="tsx">{`'use client'
-import { datadogRum } from '@datadog/browser-rum'
+            <Pre lang="bash">{`npm install @datadog/browser-rum @datadog/browser-rum-nextjs @datadog/browser-logs`}</Pre>
+            <Pre filename="instrumentation-client.ts  ← project root, next to instrumentation.ts" lang="typescript">{`import { datadogRum } from '@datadog/browser-rum'
 import { datadogLogs } from '@datadog/browser-logs'
+import { nextjsPlugin, onRouterTransitionStart } from '@datadog/browser-rum-nextjs'
+
+// Next.js calls this on every App Router client-side navigation.
+export { onRouterTransitionStart }
 
 datadogRum.init({
   applicationId: process.env.NEXT_PUBLIC_DD_APPLICATION_ID!,
@@ -480,6 +494,7 @@ datadogRum.init({
   sessionReplaySampleRate: 100,
   trackResources:          true,
   trackUserInteractions:   true,
+  plugins: [nextjsPlugin()],
   // Injects traceparent header on matched requests → connects browser session to server span.
   // Accepts strings (prefix match), RegExp, or predicate functions — mix as needed.
   allowedTracingUrls: [
@@ -499,22 +514,38 @@ datadogLogs.init({
   site:               process.env.NEXT_PUBLIC_DD_SITE ?? 'datadoghq.com',
   service:            'my-app-web',
   forwardErrorsToLogs: true,
+  forwardConsoleLogs:  ['error'],
   sessionSampleRate:   100,
-})
-
-export default function DatadogInit() { return null }`}</Pre>
-            <Pre filename="app/layout.tsx (excerpt)" lang="tsx">{`import DatadogInit from '@/app/components/datadog-init'
+})`}</Pre>
+            <Pre filename="app/layout.tsx (excerpt)" lang="tsx">{`import { DatadogAppRouter } from '@datadog/browser-rum-nextjs'
 
 export default function RootLayout({ children }) {
   return (
     <html>
       <body>
-        <DatadogInit />
+        <DatadogAppRouter />
         {children}
       </body>
     </html>
   )
 }`}</Pre>
+            <Pre filename="app/error.tsx" lang="tsx">{`'use client'
+import { useEffect } from 'react'
+import { addNextjsError } from '@datadog/browser-rum-nextjs'
+
+export default function ErrorPage({ error, reset }: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  // Server Component errors arrive with a generic message + error.digest —
+  // the digest is attached to the RUM error so you can match it to server logs.
+  useEffect(() => { addNextjsError(error) }, [error])
+  return <button onClick={reset}>Try again</button>
+}`}</Pre>
+            <p className="text-sm text-gray-600 mb-4">
+              Add the same hook to <Code>app/global-error.tsx</Code> (which must render its own{' '}
+              <Code>&lt;html&gt;</Code> and <Code>&lt;body&gt;</Code>) to catch root layout errors.
+            </p>
             <Note variant="tip">
               <strong>allowedTracingUrls</strong> tells RUM to inject a <Code>traceparent</Code>{' '}
               header on fetch requests to your own origin. This links the browser RUM session to the
