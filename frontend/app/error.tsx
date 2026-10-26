@@ -1,9 +1,9 @@
 'use client'
 
 import {useEffect} from 'react'
-import {rumAddError} from '@/lib/rum'
+import {addNextjsError} from '@datadog/browser-rum-nextjs'
 
-export default function GlobalError({
+export default function ErrorPage({
   error,
   reset,
 }: {
@@ -11,7 +11,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    rumAddError(error, {digest: error.digest})
+    addNextjsError(error)
   }, [error])
 
   return (

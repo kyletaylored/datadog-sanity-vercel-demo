@@ -13,7 +13,7 @@ import Header from '@/app/components/Header'
 import {SanityLive} from '@/sanity/lib/live'
 import {handleError} from '@/app/client-utils'
 import {BRAND} from '@/lib/brand'
-import DatadogInit from '@/app/components/datadog-init'
+import {DatadogAppRouter} from '@datadog/browser-rum-nextjs'
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -50,7 +50,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
   return (
     <html lang="en" className={`${inter.variable} ${ibmPlexMono.variable} bg-white text-black`}>
       <body>
-        <DatadogInit />
+        <DatadogAppRouter />
         <section className="min-h-screen pt-16 sm:pt-20">
           <Toaster />
           {isDraftMode && (
